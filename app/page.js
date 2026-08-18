@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
+// Live $9.99/mo Stripe Payment Link
 const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/dRmaEX9av3fu7Yb8Y07kc01';
 
 const highGrades = [
@@ -103,9 +104,32 @@ export default function Home() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDimension = 1200;
+        let { width, height } = img;
+
+        if (width > height && width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          if (side === 'front') setFrontImage(compressedDataUrl);
+          if (side === 'back') setBackImage(compressedDataUrl);
+        }
+      };
       if (event.target?.result) {
-        if (side === 'front') setFrontImage(event.target.result);
-        if (side === 'back') setBackImage(event.target.result);
+        img.src = event.target.result;
       }
     };
     reader.readAsDataURL(file);
@@ -201,7 +225,7 @@ export default function Home() {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-base md:text-lg font-bold text-slate-100">Dual-Side High Precision Scan</h2>
-                <p className="text-xs text-slate-400">Tap below to capture or upload both card sides.</p>
+                <p className="text-xs text-slate-400">Take a direct camera photo or upload from your gallery.</p>
               </div>
               {(frontImage || backImage) && (
                 <button
@@ -214,17 +238,18 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[270px] flex items-center justify-center overflow-hidden">
+              {/* FRONT SIDE */}
+              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
                 <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   FRONT SIDE
                 </span>
 
                 {frontImage ? (
-                  <div className="relative w-full h-[240px] flex items-center justify-center">
+                  <div className="relative w-full h-[250px] flex items-center justify-center">
                     <img 
                       src={frontImage} 
                       alt="Front preview" 
-                      className="max-h-[230px] max-w-full object-contain rounded-lg shadow-lg" 
+                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg" 
                     />
                     <button
                       type="button"
@@ -235,24 +260,41 @@ export default function Home() {
                     </button>
                   </div>
                 ) : (
-                  <label 
-                    htmlFor="upload-front-box" 
-                    className="w-full h-full min-h-[240px] flex flex-col items-center justify-center cursor-pointer p-4 text-center"
-                  >
-                    <svg className="w-10 h-10 text-slate-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2">
+                    <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-sm font-semibold text-slate-200">Tap to Upload Front Photo</span>
-                    <span className="text-[11px] text-slate-500 mt-1">Camera or Photo Album</span>
-                    <input 
-                      id="upload-front-box"
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => handleImageUpload(e, 'front')} 
-                      className="hidden" 
-                    />
-                  </label>
+
+                    <label 
+                      htmlFor="front-camera"
+                      className="w-full max-w-[200px] py-2.5 px-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-lg text-center cursor-pointer shadow flex items-center justify-center gap-1.5 transition"
+                    >
+                      <span>📷 Take Photo</span>
+                      <input 
+                        id="front-camera"
+                        type="file" 
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => handleImageUpload(e, 'front')} 
+                        className="hidden" 
+                      />
+                    </label>
+
+                    <label 
+                      htmlFor="front-gallery"
+                      className="w-full max-w-[200px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-1.5 transition"
+                    >
+                      <span>📁 Choose from Gallery</span>
+                      <input 
+                        id="front-gallery"
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleImageUpload(e, 'front')} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
                 )}
 
                 {isScanning && (
@@ -263,17 +305,18 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[270px] flex items-center justify-center overflow-hidden">
+              {/* BACK SIDE */}
+              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
                 <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   BACK SIDE
                 </span>
 
                 {backImage ? (
-                  <div className="relative w-full h-[240px] flex items-center justify-center">
+                  <div className="relative w-full h-[250px] flex items-center justify-center">
                     <img 
                       src={backImage} 
                       alt="Back preview" 
-                      className="max-h-[230px] max-w-full object-contain rounded-lg shadow-lg" 
+                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg" 
                     />
                     <button
                       type="button"
@@ -284,24 +327,41 @@ export default function Home() {
                     </button>
                   </div>
                 ) : (
-                  <label 
-                    htmlFor="upload-back-box" 
-                    className="w-full h-full min-h-[240px] flex flex-col items-center justify-center cursor-pointer p-4 text-center"
-                  >
-                    <svg className="w-10 h-10 text-slate-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2">
+                    <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-sm font-semibold text-slate-200">Tap to Upload Back Photo</span>
-                    <span className="text-[11px] text-slate-500 mt-1">Camera or Photo Album</span>
-                    <input 
-                      id="upload-back-box"
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => handleImageUpload(e, 'back')} 
-                      className="hidden" 
-                    />
-                  </label>
+
+                    <label 
+                      htmlFor="back-camera"
+                      className="w-full max-w-[200px] py-2.5 px-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-lg text-center cursor-pointer shadow flex items-center justify-center gap-1.5 transition"
+                    >
+                      <span>📷 Take Photo</span>
+                      <input 
+                        id="back-camera"
+                        type="file" 
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => handleImageUpload(e, 'back')} 
+                        className="hidden" 
+                      />
+                    </label>
+
+                    <label 
+                      htmlFor="back-gallery"
+                      className="w-full max-w-[200px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-1.5 transition"
+                    >
+                      <span>📁 Choose from Gallery</span>
+                      <input 
+                        id="back-gallery"
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleImageUpload(e, 'back')} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
                 )}
 
                 {isScanning && (
