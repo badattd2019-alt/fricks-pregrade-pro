@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-// Live $9.99/mo Stripe Payment Link
 const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/dRmaEX9av3fu7Yb8Y07kc01';
 
 const highGrades = [
@@ -69,6 +68,12 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [monthlyCards, setMonthlyCards] = useState(15);
 
+  // In-app camera states
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraTargetSide, setCameraTargetSide] = useState(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -97,6 +102,47 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Launch live camera view
+  const openCamera = async (side) => {
+    setCameraTargetSide(side);
+    setCameraActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error('Camera access error:', err);
+    }
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth || 1280;
+    canvas.height = videoRef.current.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      if (cameraTargetSide === 'front') setFrontImage(dataUrl);
+      if (cameraTargetSide === 'back') setBackImage(dataUrl);
+    }
+    closeCamera();
+  };
+
+  const closeCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    setCameraActive(false);
+    setCameraTargetSide(null);
+  };
 
   const handleImageUpload = (e, side) => {
     const file = e.target.files?.[0];
@@ -225,7 +271,7 @@ export default function Home() {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-base md:text-lg font-bold text-slate-100">Dual-Side High Precision Scan</h2>
-                <p className="text-xs text-slate-400">Take a direct camera photo or upload from your gallery.</p>
+                <p className="text-xs text-slate-400">Take a direct camera photo or choose from your files.</p>
               </div>
               {(frontImage || backImage) && (
                 <button
@@ -261,33 +307,21 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2">
-                    <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                    <button
+                      type="button"
+                      onClick={() => openCamera('front')}
+                      className="w-full max-w-[210px] py-2.5 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl text-center cursor-pointer shadow-lg flex items-center justify-center gap-2 transition"
+                    >
+                      <span>📷 Open Camera</span>
+                    </button>
 
                     <label 
-                      htmlFor="front-camera"
-                      className="w-full max-w-[200px] py-2.5 px-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-lg text-center cursor-pointer shadow flex items-center justify-center gap-1.5 transition"
+                      htmlFor="front-gallery-picker"
+                      className="w-full max-w-[210px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-2 transition"
                     >
-                      <span>📷 Take Photo</span>
+                      <span>📁 Photos / Files</span>
                       <input 
-                        id="front-camera"
-                        type="file" 
-                        accept="image/*"
-                        capture="environment"
-                        onChange={(e) => handleImageUpload(e, 'front')} 
-                        className="hidden" 
-                      />
-                    </label>
-
-                    <label 
-                      htmlFor="front-gallery"
-                      className="w-full max-w-[200px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-1.5 transition"
-                    >
-                      <span>📁 Choose from Gallery</span>
-                      <input 
-                        id="front-gallery"
+                        id="front-gallery-picker"
                         type="file" 
                         accept="image/*" 
                         onChange={(e) => handleImageUpload(e, 'front')} 
@@ -328,33 +362,21 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2">
-                    <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                    <button
+                      type="button"
+                      onClick={() => openCamera('back')}
+                      className="w-full max-w-[210px] py-2.5 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl text-center cursor-pointer shadow-lg flex items-center justify-center gap-2 transition"
+                    >
+                      <span>📷 Open Camera</span>
+                    </button>
 
                     <label 
-                      htmlFor="back-camera"
-                      className="w-full max-w-[200px] py-2.5 px-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-lg text-center cursor-pointer shadow flex items-center justify-center gap-1.5 transition"
+                      htmlFor="back-gallery-picker"
+                      className="w-full max-w-[210px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-2 transition"
                     >
-                      <span>📷 Take Photo</span>
+                      <span>📁 Photos / Files</span>
                       <input 
-                        id="back-camera"
-                        type="file" 
-                        accept="image/*"
-                        capture="environment"
-                        onChange={(e) => handleImageUpload(e, 'back')} 
-                        className="hidden" 
-                      />
-                    </label>
-
-                    <label 
-                      htmlFor="back-gallery"
-                      className="w-full max-w-[200px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-1.5 transition"
-                    >
-                      <span>📁 Choose from Gallery</span>
-                      <input 
-                        id="back-gallery"
+                        id="back-gallery-picker"
                         type="file" 
                         accept="image/*" 
                         onChange={(e) => handleImageUpload(e, 'back')} 
@@ -552,6 +574,48 @@ export default function Home() {
           </div>
         </aside>
       </main>
+
+      {/* LIVE CAMERA VIEWFINDER MODAL */}
+      {cameraActive && (
+        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-between p-4">
+          <div className="w-full max-w-md flex justify-between items-center text-white pt-2">
+            <span className="text-xs font-bold tracking-wider text-cyan-400 uppercase">
+              Live Alignment Viewfinder ({cameraTargetSide?.toUpperCase()} SIDE)
+            </span>
+            <button
+              onClick={closeCamera}
+              className="text-slate-400 hover:text-white text-lg px-2 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="relative w-full max-w-md h-[65vh] bg-slate-900 rounded-2xl overflow-hidden border-2 border-cyan-500 flex items-center justify-center">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            {/* Card alignment overlay box */}
+            <div className="absolute border-2 border-dashed border-cyan-400/80 rounded-xl w-[70%] h-[80%] pointer-events-none flex items-center justify-center">
+              <span className="text-[11px] font-bold text-cyan-300/80 bg-slate-950/60 px-2 py-0.5 rounded">
+                Align Card Edges Here
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full max-w-md flex justify-center pb-6">
+            <button
+              onClick={capturePhoto}
+              className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-2xl text-slate-950 font-black cursor-pointer transition active:scale-95"
+            >
+              📸
+            </button>
+          </div>
+        </div>
+      )}
 
       {showPaywall && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
