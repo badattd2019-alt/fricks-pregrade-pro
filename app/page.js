@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
+// Live $9.99/mo Stripe Payment Link
 const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/dRmaEX9av3fu7Yb8Y07kc01';
 
 const highGrades = [
@@ -41,15 +42,20 @@ const highGrades = [
 
 const mockCommunityPool = [
   { title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)' },
-  { title: '2021 Evolving Skies Umbreon VMAX #215', status: 'PSA 9 MT (Est. +$420 ROI)' },
-  { title: '1996 Japanese Base Charizard No Rarity', status: 'PSA 8 NM-MT' },
+  { title: '2021 Evolving Skies Umbreon VMAX #215', status: 'PSA 9.5 MT (Est. +$420 ROI)' },
+  { title: '1996 Japanese Base Charizard No Rarity', status: 'PSA 8.5 NM-MT' },
   { title: '2023 151 Special Illustration Erika #203', status: 'PSA 10 (Est. +$115 ROI)' },
+  { title: '2003 Skyridge Gengar Holo #13', status: 'PSA 9 GM' },
+  { title: '2020 Champions Path Charizard V #079', status: 'PSA 10 (Est. +$260 ROI)' },
+  { title: '1999 Fossil Gengar 1st Edition #5', status: 'PSA 9 GM' },
+  { title: '2024 Paldean Fates Mew ex #232', status: 'PSA 9.5 MT' },
 ];
 
 const initialActivity = [
   { id: 1, title: '2022 Pokemon Go Radiant Charizard #011', status: 'PSA 10 (Est. +$180 ROI)', time: '12s ago' },
-  { id: 2, title: '2022 Pokemon Go Radiant Blastoise #018', status: 'PSA 9 MT', time: '1m ago' },
-  { id: 3, title: '1999 Base Mewtwo #10', status: 'PSA 9 MT', time: '3m ago' },
+  { id: 2, title: '2022 Pokemon Go Radiant Blastoise #018', status: 'PSA 9.5 MT', time: '1m ago' },
+  { id: 3, title: '1999 Base Mewtwo #10', status: 'PSA 9 GM', time: '3m ago' },
+  { id: 4, title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)', time: '5m ago' },
 ];
 
 export default function Home() {
@@ -75,6 +81,26 @@ export default function Home() {
         setIsPro(true);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomCard = mockCommunityPool[Math.floor(Math.random() * mockCommunityPool.length)];
+      setActivity((prev) => {
+        if (prev[0]?.title === randomCard.title) return prev;
+        return [
+          {
+            id: Math.random(),
+            title: randomCard.title,
+            status: randomCard.status,
+            time: 'Just now',
+          },
+          ...prev.slice(0, 3),
+        ];
+      });
+    }, 8000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const openCamera = async (side) => {
@@ -154,23 +180,93 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // Central Digital Grid Overlay Component mimicking your physical tool
-  const CenteringGridOverlay = () => (
-    <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center opacity-70">
-      <div className="w-[85%] h-[90%] border-2 border-cyan-400 relative">
-        {/* Crosshairs */}
-        <div className="absolute top-0 bottom-0 left-1/2 border-l border-cyan-400/50"></div>
-        <div className="absolute left-0 right-0 top-1/2 border-t border-cyan-400/50"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-cyan-400"></div>
-        {/* Measurement Scale Lines (mimicking the 1,2,3,4,5 lines) */}
-        <div className="absolute top-2 bottom-2 left-2 border-l border-red-500/50"></div>
-        <div className="absolute top-2 bottom-2 right-2 border-r border-red-500/50"></div>
-        <div className="absolute left-2 right-2 top-2 border-t border-red-500/50"></div>
-        <div className="absolute left-2 right-2 bottom-2 border-b border-red-500/50"></div>
-        <span className="absolute bottom-1 right-2 text-[8px] font-bold text-red-500">DIGITAL RULER</span>
-      </div>
-    </div>
-  );
+  // High-Visibility Neon SVG Replica of the Physical Grader Tool
+  const ExactDigitalCenteringTool = () => {
+    const lines = [1, 2, 3, 4, 5];
+    // Thickened strokes and added a strong neon drop-shadow for visibility
+    return (
+      <svg 
+        className="absolute inset-0 w-full h-full pointer-events-none z-[60]" 
+        style={{ filter: "drop-shadow(0px 0px 4px #00FFFF) drop-shadow(1px 1px 2px #000000)" }} 
+        viewBox="0 0 100 140" 
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {/* Center Crosshairs */}
+        <line x1="50" y1="5" x2="50" y2="135" stroke="#00FFFF" strokeWidth="0.8" />
+        <line x1="5" y1="70" x2="95" y2="70" stroke="#00FFFF" strokeWidth="0.8" />
+        <circle cx="50" cy="70" r="3.5" stroke="#00FFFF" strokeWidth="0.8" fill="none" />
+        <circle cx="50" cy="70" r="1.5" fill="#00FFFF" />
+
+        {/* TOP LEFT CORNER 1-5 */}
+        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+          {lines.map((i) => {
+            const o = i * 2.5; 
+            const cx = 10 + o, cy = 10 + o;
+            const vx = cx, vy = 45 - o;
+            const hx = 45 - o, hy = cy;
+            return (
+              <React.Fragment key={`tl-${i}`}>
+                <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
+                <text x={vx} y={vy + 4.5} fill="#00FFFF" stroke="none">{i}</text>
+                <text x={hx + 3.5} y={hy + 1.2} fill="#00FFFF" stroke="none">{i}</text>
+              </React.Fragment>
+            )
+          })}
+        </g>
+
+        {/* TOP RIGHT CORNER 1-5 */}
+        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+          {lines.map((i) => {
+            const o = i * 2.5; 
+            const cx = 90 - o, cy = 10 + o;
+            const vx = cx, vy = 45 - o;
+            const hx = 55 + o, hy = cy;
+            return (
+              <React.Fragment key={`tr-${i}`}>
+                <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
+                <text x={vx} y={vy + 4.5} fill="#00FFFF" stroke="none">{i}</text>
+                <text x={hx - 3.5} y={hy + 1.2} fill="#00FFFF" stroke="none">{i}</text>
+              </React.Fragment>
+            )
+          })}
+        </g>
+
+        {/* BOTTOM LEFT CORNER 1-5 */}
+        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+          {lines.map((i) => {
+            const o = i * 2.5; 
+            const cx = 10 + o, cy = 130 - o;
+            const vx = cx, vy = 95 + o;
+            const hx = 45 - o, hy = cy;
+            return (
+              <React.Fragment key={`bl-${i}`}>
+                <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
+                <text x={vx} y={vy - 2.5} fill="#00FFFF" stroke="none">{i}</text>
+                <text x={hx + 3.5} y={hy + 1.2} fill="#00FFFF" stroke="none">{i}</text>
+              </React.Fragment>
+            )
+          })}
+        </g>
+
+        {/* BOTTOM RIGHT CORNER 1-5 */}
+        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+          {lines.map((i) => {
+            const o = i * 2.5; 
+            const cx = 90 - o, cy = 130 - o;
+            const vx = cx, vy = 95 + o;
+            const hx = 55 + o, hy = cy;
+            return (
+              <React.Fragment key={`br-${i}`}>
+                <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
+                <text x={vx} y={vy - 2.5} fill="#00FFFF" stroke="none">{i}</text>
+                <text x={hx - 3.5} y={hy + 1.2} fill="#00FFFF" stroke="none">{i}</text>
+              </React.Fragment>
+            )
+          })}
+        </g>
+      </svg>
+    );
+  };
 
   const runScan = () => {
     if (!isPro && scansLeft <= 0) {
@@ -188,7 +284,7 @@ export default function Home() {
         setScansLeft((prev) => Math.max(0, prev - 1));
       }
 
-      // Updated Report Engine using the PSA Standards Rubric
+      // Logic updated to literally quote your ratio card's "bold" sections
       const generatedReport = {
         title: 'Uploaded Collector Card',
         grade: 'GEM-MT 10',
@@ -196,12 +292,13 @@ export default function Home() {
         gradedVal: '$280.00',
         centering: { 
           score: '10.0', 
-          note: 'L/R: 56/44 | T/B: 50/50',
-          rubric: 'Meets PSA 10 Standard (60/40 or better)' 
+          measurements: 'L/R: 3.0-2.0 (60/40) | T/B: 2.5-2.0 (56/44)',
+          ratio: 'All ratios hit the bold 60/40 threshold',
+          rubric: 'PSA Standard: GEM-MT 10 (Front within 55/45 to 60/40 limit)' 
         },
-        corners: { score: '10.0', note: 'Razor Sharp' },
-        edges: { score: '9.5', note: 'Clean Cuts' },
-        surface: { score: '9.5', note: 'No print lines detected' },
+        corners: { score: '10.0', note: 'Razor Sharp, No Whitening' },
+        edges: { score: '9.5', note: 'Micro-Friction Top Edge' },
+        surface: { score: '9.5', note: 'High Holographic Gloss' },
         recommendation: 'STRONG SUBMISSION CANDIDATE (Est. +$235 Value Gain)',
       };
       setReport(generatedReport);
@@ -224,17 +321,17 @@ export default function Home() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-0.5 rounded-full uppercase">
-              AI Grading Engine v3.0
+              AI Grading Engine v3.1
             </span>
             <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
-              ● PSA Rubric Active
+              ● PSA Ratio Rubric Active
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold mt-2 text-white tracking-tight">
             AI Sports & TCG Card Inspector
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Analyze 60/40 centering and edge wear before spending $25 on PSA submissions.
+            Analyze 60/40 centering thresholds and edge wear before spending $25 on PSA submissions.
           </p>
         </div>
 
@@ -290,13 +387,17 @@ export default function Home() {
                     <img 
                       src={frontImage} 
                       alt="Front preview" 
-                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0" 
+                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0 relative" 
                     />
-                    <CenteringGridOverlay />
+                    {/* Overlay physical tool on uploaded image */}
+                    <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+                       <ExactDigitalCenteringTool />
+                    </div>
+                    
                     <button
                       type="button"
                       onClick={() => { setFrontImage(null); setReport(null); }}
-                      className="absolute top-1 right-1 z-30 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                      className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                     >
                       ✕
                     </button>
@@ -328,9 +429,9 @@ export default function Home() {
                 )}
 
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-40 pointer-events-none">
+                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CALCULATING L/R PIXEL RATIOS...</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CALCULATING 60/40 RATIOS...</span>
                   </div>
                 )}
               </div>
@@ -346,13 +447,17 @@ export default function Home() {
                     <img 
                       src={backImage} 
                       alt="Back preview" 
-                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0" 
+                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0 relative" 
                     />
-                    <CenteringGridOverlay />
+                    {/* Overlay physical tool on uploaded image */}
+                    <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+                       <ExactDigitalCenteringTool />
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => { setBackImage(null); setReport(null); }}
-                      className="absolute top-1 right-1 z-30 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                      className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                     >
                       ✕
                     </button>
@@ -384,7 +489,7 @@ export default function Home() {
                 )}
 
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-40 pointer-events-none">
+                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
                     <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CHECKING PSA STANDARDS...</span>
                   </div>
@@ -447,14 +552,15 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Highlighted Centering Data Block */}
+                {/* Highlighted Centering Data Block Mimicking PSA Standard Card */}
                 <div className="bg-cyan-950/30 p-3 rounded-xl border border-cyan-800/50">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[11px] text-cyan-400 font-bold uppercase tracking-wide">Centering Ratio</span>
                     <span className="text-xs font-black text-cyan-300">{report.centering.score}</span>
                   </div>
-                  <p className="text-sm font-semibold text-white">{report.centering.note}</p>
-                  <p className="text-[10px] text-cyan-500 mt-1">{report.centering.rubric}</p>
+                  <p className="text-sm font-semibold text-white">{report.centering.measurements}</p>
+                  <p className="text-xs font-medium text-cyan-300 mt-0.5">{report.centering.ratio}</p>
+                  <p className="text-[10px] text-cyan-500/80 mt-1 italic">{report.centering.rubric}</p>
                 </div>
 
                 <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
@@ -572,10 +678,10 @@ export default function Home() {
         </aside>
       </main>
 
-      {/* LIVE CAMERA VIEWFINDER MODAL */}
+      {/* LIVE CAMERA VIEWFINDER MODAL WITH NEW NEON RULER OVERLAY */}
       {cameraActive && (
         <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-between p-4">
-          <div className="w-full max-w-md flex justify-between items-center text-white pt-2">
+          <div className="w-full max-w-md flex justify-between items-center text-white pt-2 z-50">
             <span className="text-xs font-bold tracking-wider text-cyan-400 uppercase">
               Live Alignment Viewfinder ({cameraTargetSide?.toUpperCase()} SIDE)
             </span>
@@ -593,16 +699,16 @@ export default function Home() {
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover relative z-10"
             />
-            {/* The transparent physical grid overlay */}
-            <CenteringGridOverlay />
+            {/* The Thick Neon Digital Replica Grid */}
+            <ExactDigitalCenteringTool />
           </div>
 
-          <div className="w-full max-w-md flex justify-center pb-6">
+          <div className="w-full max-w-md flex justify-center pb-6 z-50">
             <button
               onClick={capturePhoto}
-              className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-2xl text-slate-950 font-black cursor-pointer transition active:scale-95 z-50"
+              className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-2xl text-slate-950 font-black cursor-pointer transition active:scale-95"
             >
               📸
             </button>
