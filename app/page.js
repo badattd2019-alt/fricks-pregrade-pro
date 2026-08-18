@@ -98,19 +98,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleImageChange = (e, side) => {
+  const handleImageUpload = (e, side) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      if (side === 'front') setFrontImage(url);
-      if (side === 'back') setBackImage(url);
-    }
-  };
+    if (!file) return;
 
-  const removeImage = (side) => {
-    if (side === 'front') setFrontImage(null);
-    if (side === 'back') setBackImage(null);
-    setReport(null);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        if (side === 'front') setFrontImage(event.target.result);
+        if (side === 'back') setBackImage(event.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const runScan = () => {
@@ -156,7 +155,7 @@ export default function Home() {
   const estimatedSavings = Math.round(monthlyCards * 0.4 * 25);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 font-sans selection:bg-blue-500 selection:text-white relative">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-10 font-sans selection:bg-blue-500 selection:text-white relative">
       <header className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6 mb-8">
         <div>
           <div className="flex items-center gap-2">
@@ -167,7 +166,7 @@ export default function Home() {
               ● 99.4% PSA Alignment
             </span>
           </div>
-          <h1 className="text-3xl font-extrabold mt-2 text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold mt-2 text-white tracking-tight">
             AI Sports & TCG Card Inspector
           </h1>
           <p className="text-slate-400 text-sm mt-1">
@@ -175,8 +174,8 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-inner">
-          <div className="text-right">
+        <div className="flex items-center justify-between md:justify-end gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-inner">
+          <div className="text-left md:text-right">
             <p className="text-xs text-slate-400">Account Status</p>
             {isPro ? (
               <p className="text-xs font-bold text-cyan-400">PRO (Unlimited Scans)</p>
@@ -199,11 +198,11 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <section className="lg:col-span-2 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-lg font-bold text-slate-100">Dual-Side High Precision Scan</h2>
-                <p className="text-xs text-slate-400">Upload front and back for subgrade precision.</p>
+                <h2 className="text-base md:text-lg font-bold text-slate-100">Dual-Side High Precision Scan</h2>
+                <p className="text-xs text-slate-400">Tap below to capture or upload both card sides.</p>
               </div>
               {(frontImage || backImage) && (
                 <button
@@ -215,67 +214,101 @@ export default function Home() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="relative border-2 border-dashed border-slate-700 hover:border-cyan-500/50 bg-slate-950/70 rounded-xl p-4 flex flex-col items-center justify-center min-h-[220px] transition group">
-                <span className="absolute top-3 left-3 text-[10px] font-bold tracking-wider text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {/* FRONT SIDE */}
+              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[270px] flex items-center justify-center overflow-hidden">
+                <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   FRONT SIDE
                 </span>
+
                 {frontImage ? (
-                  <div className="relative w-full h-44 flex items-center justify-center">
-                    <img src={frontImage} alt="Front" className="max-h-full max-w-full object-contain rounded" />
+                  <div className="relative w-full h-[240px] flex items-center justify-center">
+                    <img 
+                      src={frontImage} 
+                      alt="Front preview" 
+                      className="max-h-[230px] max-w-full object-contain rounded-lg shadow-lg" 
+                    />
                     <button
-                      onClick={() => removeImage('front')}
-                      className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-[10px] cursor-pointer"
-                      title="Remove image"
+                      type="button"
+                      onClick={() => { setFrontImage(null); setReport(null); }}
+                      className="absolute top-1 right-1 z-20 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
                 ) : (
-                  <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
-                    <svg className="w-8 h-8 text-slate-500 mb-2 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <label 
+                    htmlFor="upload-front-box" 
+                    className="w-full h-full min-h-[240px] flex flex-col items-center justify-center cursor-pointer p-4 text-center"
+                  >
+                    <svg className="w-10 h-10 text-slate-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-xs font-semibold text-slate-300">Click or Drag Front Card</span>
-                    <span className="text-[10px] text-slate-500 mt-1">PNG, JPG up to 10MB</span>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, 'front')} className="hidden" />
+                    <span className="text-sm font-semibold text-slate-200">Tap to Upload Front Photo</span>
+                    <span className="text-[11px] text-slate-500 mt-1">Camera or Photo Album</span>
+                    <input 
+                      id="upload-front-box"
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleImageUpload(e, 'front')} 
+                      className="hidden" 
+                    />
                   </label>
                 )}
+
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/60 backdrop-blur-[1px] rounded-xl flex flex-col items-center justify-center overflow-hidden border border-cyan-400">
+                  <div className="absolute inset-0 bg-cyan-950/70 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-30 pointer-events-none">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
                     <span className="text-xs font-mono font-bold text-cyan-300 mt-3">SCANNING PIXELS...</span>
                   </div>
                 )}
               </div>
 
-              <div className="relative border-2 border-dashed border-slate-700 hover:border-cyan-500/50 bg-slate-950/70 rounded-xl p-4 flex flex-col items-center justify-center min-h-[220px] transition group">
-                <span className="absolute top-3 left-3 text-[10px] font-bold tracking-wider text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+              {/* BACK SIDE */}
+              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[270px] flex items-center justify-center overflow-hidden">
+                <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   BACK SIDE
                 </span>
+
                 {backImage ? (
-                  <div className="relative w-full h-44 flex items-center justify-center">
-                    <img src={backImage} alt="Back" className="max-h-full max-w-full object-contain rounded" />
+                  <div className="relative w-full h-[240px] flex items-center justify-center">
+                    <img 
+                      src={backImage} 
+                      alt="Back preview" 
+                      className="max-h-[230px] max-w-full object-contain rounded-lg shadow-lg" 
+                    />
                     <button
-                      onClick={() => removeImage('back')}
-                      className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-[10px] cursor-pointer"
-                      title="Remove image"
+                      type="button"
+                      onClick={() => { setBackImage(null); setReport(null); }}
+                      className="absolute top-1 right-1 z-20 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
                 ) : (
-                  <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
-                    <svg className="w-8 h-8 text-slate-500 mb-2 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <label 
+                    htmlFor="upload-back-box" 
+                    className="w-full h-full min-h-[240px] flex flex-col items-center justify-center cursor-pointer p-4 text-center"
+                  >
+                    <svg className="w-10 h-10 text-slate-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-xs font-semibold text-slate-300">Click or Drag Back Card</span>
-                    <span className="text-[10px] text-slate-500 mt-1">PNG, JPG up to 10MB</span>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, 'back')} className="hidden" />
+                    <span className="text-sm font-semibold text-slate-200">Tap to Upload Back Photo</span>
+                    <span className="text-[11px] text-slate-500 mt-1">Camera or Photo Album</span>
+                    <input 
+                      id="upload-back-box"
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleImageUpload(e, 'back')} 
+                      className="hidden" 
+                    />
                   </label>
                 )}
+
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/60 backdrop-blur-[1px] rounded-xl flex flex-col items-center justify-center overflow-hidden border border-cyan-400">
+                  <div className="absolute inset-0 bg-cyan-950/70 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-30 pointer-events-none">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
                     <span className="text-xs font-mono font-bold text-cyan-300 mt-3">ANALYZING EDGES...</span>
                   </div>
@@ -311,7 +344,7 @@ export default function Home() {
           </div>
 
           {report && (
-            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div>
                   <span className="text-xs font-bold text-cyan-400 uppercase tracking-wide">Inspection Complete</span>
@@ -373,7 +406,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
             <h3 className="text-base font-bold text-white mb-1">
               Submission Fee Savings Calculator
             </h3>
