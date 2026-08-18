@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Live $9.99/mo Stripe Payment Link
 const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/dRmaEX9av3fu7Yb8Y07kc01';
 
 const highGrades = [
@@ -215,7 +214,6 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* FRONT SIDE */}
               <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[270px] flex items-center justify-center overflow-hidden">
                 <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   FRONT SIDE
@@ -265,7 +263,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* BACK SIDE */}
               <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[270px] flex items-center justify-center overflow-hidden">
                 <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   BACK SIDE
