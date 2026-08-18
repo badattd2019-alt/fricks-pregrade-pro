@@ -180,10 +180,9 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // High-Visibility Neon SVG Replica of the Physical Grader Tool
+  // High-Visibility Neon SVG Locked to Card Proportions
   const ExactDigitalCenteringTool = () => {
     const lines = [1, 2, 3, 4, 5];
-    // Thickened strokes and added a strong neon drop-shadow for visibility
     return (
       <svg 
         className="absolute inset-0 w-full h-full pointer-events-none z-[60]" 
@@ -192,18 +191,18 @@ export default function Home() {
         preserveAspectRatio="xMidYMid meet"
       >
         {/* Center Crosshairs */}
-        <line x1="50" y1="5" x2="50" y2="135" stroke="#00FFFF" strokeWidth="0.8" />
-        <line x1="5" y1="70" x2="95" y2="70" stroke="#00FFFF" strokeWidth="0.8" />
-        <circle cx="50" cy="70" r="3.5" stroke="#00FFFF" strokeWidth="0.8" fill="none" />
+        <line x1="50" y1="0" x2="50" y2="140" stroke="#00FFFF" strokeWidth="0.8" />
+        <line x1="0" y1="70" x2="100" y2="70" stroke="#00FFFF" strokeWidth="0.8" />
+        <circle cx="50" cy="70" r="4.5" stroke="#00FFFF" strokeWidth="0.8" fill="none" />
         <circle cx="50" cy="70" r="1.5" fill="#00FFFF" />
 
         {/* TOP LEFT CORNER 1-5 */}
-        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+        <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
-            const o = i * 2.5; 
-            const cx = 10 + o, cy = 10 + o;
-            const vx = cx, vy = 45 - o;
-            const hx = 45 - o, hy = cy;
+            const o = i * 2; 
+            const cx = o, cy = o;
+            const vx = cx, vy = 26 - o;
+            const hx = 26 - o, hy = cy;
             return (
               <React.Fragment key={`tl-${i}`}>
                 <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
@@ -215,12 +214,12 @@ export default function Home() {
         </g>
 
         {/* TOP RIGHT CORNER 1-5 */}
-        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+        <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
-            const o = i * 2.5; 
-            const cx = 90 - o, cy = 10 + o;
-            const vx = cx, vy = 45 - o;
-            const hx = 55 + o, hy = cy;
+            const o = i * 2; 
+            const cx = 100 - o, cy = o;
+            const vx = cx, vy = 26 - o;
+            const hx = 74 + o, hy = cy;
             return (
               <React.Fragment key={`tr-${i}`}>
                 <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
@@ -232,12 +231,12 @@ export default function Home() {
         </g>
 
         {/* BOTTOM LEFT CORNER 1-5 */}
-        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+        <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
-            const o = i * 2.5; 
-            const cx = 10 + o, cy = 130 - o;
-            const vx = cx, vy = 95 + o;
-            const hx = 45 - o, hy = cy;
+            const o = i * 2; 
+            const cx = o, cy = 140 - o;
+            const vx = cx, vy = 114 + o;
+            const hx = 26 - o, hy = cy;
             return (
               <React.Fragment key={`bl-${i}`}>
                 <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
@@ -249,12 +248,12 @@ export default function Home() {
         </g>
 
         {/* BOTTOM RIGHT CORNER 1-5 */}
-        <g stroke="#00FFFF" strokeWidth="0.7" fill="none" fontSize="3.8" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
+        <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
-            const o = i * 2.5; 
-            const cx = 90 - o, cy = 130 - o;
-            const vx = cx, vy = 95 + o;
-            const hx = 55 + o, hy = cy;
+            const o = i * 2; 
+            const cx = 100 - o, cy = 140 - o;
+            const vx = cx, vy = 114 + o;
+            const hx = 74 + o, hy = cy;
             return (
               <React.Fragment key={`br-${i}`}>
                 <polyline points={`${vx},${vy} ${cx},${cy} ${hx},${hy}`} />
@@ -284,7 +283,6 @@ export default function Home() {
         setScansLeft((prev) => Math.max(0, prev - 1));
       }
 
-      // Logic updated to literally quote your ratio card's "bold" sections
       const generatedReport = {
         title: 'Uploaded Collector Card',
         grade: 'GEM-MT 10',
@@ -321,7 +319,7 @@ export default function Home() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-0.5 rounded-full uppercase">
-              AI Grading Engine v3.1
+              AI Grading Engine v4.0
             </span>
             <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
               ● PSA Ratio Rubric Active
@@ -383,14 +381,15 @@ export default function Home() {
                 </span>
 
                 {frontImage ? (
-                  <div className="relative w-full h-[250px] flex items-center justify-center">
+                  <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
                     <img 
                       src={frontImage} 
                       alt="Front preview" 
-                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0 relative" 
+                      className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" 
                     />
-                    {/* Overlay physical tool on uploaded image */}
-                    <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+                    {/* The rigid aspect-ratio card slot applied to preview */}
+                    <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
+                       <img src={frontImage} alt="Front clear" className="absolute inset-0 w-full h-full object-cover" />
                        <ExactDigitalCenteringTool />
                     </div>
                     
@@ -443,14 +442,15 @@ export default function Home() {
                 </span>
 
                 {backImage ? (
-                  <div className="relative w-full h-[250px] flex items-center justify-center">
+                  <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
                     <img 
                       src={backImage} 
                       alt="Back preview" 
-                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0 relative" 
+                      className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" 
                     />
-                    {/* Overlay physical tool on uploaded image */}
-                    <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+                    {/* The rigid aspect-ratio card slot applied to preview */}
+                    <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
+                       <img src={backImage} alt="Back clear" className="absolute inset-0 w-full h-full object-cover" />
                        <ExactDigitalCenteringTool />
                     </div>
 
@@ -678,12 +678,12 @@ export default function Home() {
         </aside>
       </main>
 
-      {/* LIVE CAMERA VIEWFINDER MODAL WITH NEW NEON RULER OVERLAY */}
+      {/* LIVE CAMERA VIEWFINDER MODAL WITH STRICT ASPECT RATIO SCANNER BED */}
       {cameraActive && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-between p-4">
+        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between p-4">
           <div className="w-full max-w-md flex justify-between items-center text-white pt-2 z-50">
             <span className="text-xs font-bold tracking-wider text-cyan-400 uppercase">
-              Live Alignment Viewfinder ({cameraTargetSide?.toUpperCase()} SIDE)
+              Align Card in Scanner Bed
             </span>
             <button
               onClick={closeCamera}
@@ -693,16 +693,22 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="relative w-full max-w-md h-[65vh] bg-slate-900 rounded-2xl overflow-hidden border-2 border-cyan-500 flex items-center justify-center">
+          <div className="relative w-full max-w-md h-[70vh] bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center">
+            {/* Live Camera Feed */}
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover relative z-10"
+              className="absolute inset-0 w-full h-full object-cover z-10"
             />
-            {/* The Thick Neon Digital Replica Grid */}
-            <ExactDigitalCenteringTool />
+            
+            {/* The Scanner Bed Window (Strict 2.5 x 3.5 Ratio) */}
+            <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden">
+               <div className="relative w-[80%] max-w-[300px] aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.7)] border-2 border-cyan-400 flex items-center justify-center">
+                 <ExactDigitalCenteringTool />
+               </div>
+            </div>
           </div>
 
           <div className="w-full max-w-md flex justify-center pb-6 z-50">
