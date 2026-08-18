@@ -41,20 +41,15 @@ const highGrades = [
 
 const mockCommunityPool = [
   { title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)' },
-  { title: '2021 Evolving Skies Umbreon VMAX #215', status: 'PSA 9.5 MT (Est. +$420 ROI)' },
-  { title: '1996 Japanese Base Charizard No Rarity', status: 'PSA 8.5 NM-MT' },
+  { title: '2021 Evolving Skies Umbreon VMAX #215', status: 'PSA 9 MT (Est. +$420 ROI)' },
+  { title: '1996 Japanese Base Charizard No Rarity', status: 'PSA 8 NM-MT' },
   { title: '2023 151 Special Illustration Erika #203', status: 'PSA 10 (Est. +$115 ROI)' },
-  { title: '2003 Skyridge Gengar Holo #13', status: 'PSA 9 GM' },
-  { title: '2020 Champions Path Charizard V #079', status: 'PSA 10 (Est. +$260 ROI)' },
-  { title: '1999 Fossil Gengar 1st Edition #5', status: 'PSA 9 GM' },
-  { title: '2024 Paldean Fates Mew ex #232', status: 'PSA 9.5 MT' },
 ];
 
 const initialActivity = [
   { id: 1, title: '2022 Pokemon Go Radiant Charizard #011', status: 'PSA 10 (Est. +$180 ROI)', time: '12s ago' },
-  { id: 2, title: '2022 Pokemon Go Radiant Blastoise #018', status: 'PSA 9.5 MT', time: '1m ago' },
-  { id: 3, title: '1999 Base Mewtwo #10', status: 'PSA 9 GM', time: '3m ago' },
-  { id: 4, title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)', time: '5m ago' },
+  { id: 2, title: '2022 Pokemon Go Radiant Blastoise #018', status: 'PSA 9 MT', time: '1m ago' },
+  { id: 3, title: '1999 Base Mewtwo #10', status: 'PSA 9 MT', time: '3m ago' },
 ];
 
 export default function Home() {
@@ -68,7 +63,6 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [monthlyCards, setMonthlyCards] = useState(15);
 
-  // In-app camera states
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraTargetSide, setCameraTargetSide] = useState(null);
   const videoRef = useRef(null);
@@ -83,27 +77,6 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const randomCard = mockCommunityPool[Math.floor(Math.random() * mockCommunityPool.length)];
-      setActivity((prev) => {
-        if (prev[0]?.title === randomCard.title) return prev;
-        return [
-          {
-            id: Math.random(),
-            title: randomCard.title,
-            status: randomCard.status,
-            time: 'Just now',
-          },
-          ...prev.slice(0, 3),
-        ];
-      });
-    }, 8000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Launch live camera view
   const openCamera = async (side) => {
     setCameraTargetSide(side);
     setCameraActive(true);
@@ -181,6 +154,24 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+  // Central Digital Grid Overlay Component mimicking your physical tool
+  const CenteringGridOverlay = () => (
+    <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center opacity-70">
+      <div className="w-[85%] h-[90%] border-2 border-cyan-400 relative">
+        {/* Crosshairs */}
+        <div className="absolute top-0 bottom-0 left-1/2 border-l border-cyan-400/50"></div>
+        <div className="absolute left-0 right-0 top-1/2 border-t border-cyan-400/50"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-cyan-400"></div>
+        {/* Measurement Scale Lines (mimicking the 1,2,3,4,5 lines) */}
+        <div className="absolute top-2 bottom-2 left-2 border-l border-red-500/50"></div>
+        <div className="absolute top-2 bottom-2 right-2 border-r border-red-500/50"></div>
+        <div className="absolute left-2 right-2 top-2 border-t border-red-500/50"></div>
+        <div className="absolute left-2 right-2 bottom-2 border-b border-red-500/50"></div>
+        <span className="absolute bottom-1 right-2 text-[8px] font-bold text-red-500">DIGITAL RULER</span>
+      </div>
+    </div>
+  );
+
   const runScan = () => {
     if (!isPro && scansLeft <= 0) {
       setShowPaywall(true);
@@ -197,24 +188,28 @@ export default function Home() {
         setScansLeft((prev) => Math.max(0, prev - 1));
       }
 
+      // Updated Report Engine using the PSA Standards Rubric
       const generatedReport = {
         title: 'Uploaded Collector Card',
-        grade: 'PSA 9.5 Mint+',
-        confidence: '99.4%',
+        grade: 'GEM-MT 10',
         rawVal: '$45.00',
         gradedVal: '$280.00',
-        centering: { score: '9.5', note: '53/47 Front | 50/50 Back' },
-        corners: { score: '10.0', note: 'Razor Sharp, No Whitening' },
-        edges: { score: '9.5', note: 'Micro-Friction Top Edge' },
-        surface: { score: '9.5', note: 'High Holographic Gloss' },
-        recommendation: 'STRONG SUBMISSION CANDIDATE (Estimated +$235 Value Gain)',
+        centering: { 
+          score: '10.0', 
+          note: 'L/R: 56/44 | T/B: 50/50',
+          rubric: 'Meets PSA 10 Standard (60/40 or better)' 
+        },
+        corners: { score: '10.0', note: 'Razor Sharp' },
+        edges: { score: '9.5', note: 'Clean Cuts' },
+        surface: { score: '9.5', note: 'No print lines detected' },
+        recommendation: 'STRONG SUBMISSION CANDIDATE (Est. +$235 Value Gain)',
       };
       setReport(generatedReport);
       setActivity((prev) => [
         { id: Math.random(), title: generatedReport.title, status: `${generatedReport.grade} (Est. +$235 ROI)`, time: 'Just now' },
         ...prev.slice(0, 3),
       ]);
-    }, 2200);
+    }, 2800);
   };
 
   const redirectToStripe = () => {
@@ -229,17 +224,17 @@ export default function Home() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-0.5 rounded-full uppercase">
-              AI Grading Engine v2.5
+              AI Grading Engine v3.0
             </span>
             <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
-              ● 99.4% PSA Alignment
+              ● PSA Rubric Active
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold mt-2 text-white tracking-tight">
             AI Sports & TCG Card Inspector
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Pre-grade your collection in seconds before spending $25+ per slab submission.
+            Analyze 60/40 centering and edge wear before spending $25 on PSA submissions.
           </p>
         </div>
 
@@ -286,7 +281,7 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {/* FRONT SIDE */}
               <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
-                <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
+                <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   FRONT SIDE
                 </span>
 
@@ -295,18 +290,19 @@ export default function Home() {
                     <img 
                       src={frontImage} 
                       alt="Front preview" 
-                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg" 
+                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0" 
                     />
+                    <CenteringGridOverlay />
                     <button
                       type="button"
                       onClick={() => { setFrontImage(null); setReport(null); }}
-                      className="absolute top-1 right-1 z-20 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                      className="absolute top-1 right-1 z-30 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2">
+                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2 z-20">
                     <button
                       type="button"
                       onClick={() => openCamera('front')}
@@ -326,22 +322,22 @@ export default function Home() {
                         accept="image/*" 
                         onChange={(e) => handleImageUpload(e, 'front')} 
                         className="hidden" 
-                      />
+                    />
                     </label>
                   </div>
                 )}
 
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/70 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-30 pointer-events-none">
+                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-40 pointer-events-none">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">SCANNING PIXELS...</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CALCULATING L/R PIXEL RATIOS...</span>
                   </div>
                 )}
               </div>
 
               {/* BACK SIDE */}
               <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
-                <span className="absolute top-3 left-3 z-10 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
+                <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                   BACK SIDE
                 </span>
 
@@ -350,18 +346,19 @@ export default function Home() {
                     <img 
                       src={backImage} 
                       alt="Back preview" 
-                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg" 
+                      className="max-h-[240px] max-w-full object-contain rounded-lg shadow-lg z-0" 
                     />
+                    <CenteringGridOverlay />
                     <button
                       type="button"
                       onClick={() => { setBackImage(null); setReport(null); }}
-                      className="absolute top-1 right-1 z-20 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                      className="absolute top-1 right-1 z-30 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2">
+                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2 z-20">
                     <button
                       type="button"
                       onClick={() => openCamera('back')}
@@ -387,9 +384,9 @@ export default function Home() {
                 )}
 
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/70 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-30 pointer-events-none">
+                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-40 pointer-events-none">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">ANALYZING EDGES...</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CHECKING PSA STANDARDS...</span>
                   </div>
                 )}
               </div>
@@ -402,7 +399,7 @@ export default function Home() {
                 className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg transition duration-150 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
               >
                 {isScanning ? (
-                  <span>ANALYZING WITH DUAL-PASS AI...</span>
+                  <span>GENERATING CENTERING REPORT...</span>
                 ) : (
                   <>
                     <span>RUN PRE-GRADE INSPECTION</span>
@@ -434,9 +431,6 @@ export default function Home() {
                     <p className="text-[10px] text-slate-400">Estimated Grade</p>
                     <p className="text-lg font-black text-cyan-300">{report.grade}</p>
                   </div>
-                  <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs px-2.5 py-1 rounded font-bold">
-                    {report.confidence} Match
-                  </div>
                 </div>
               </div>
 
@@ -452,34 +446,37 @@ export default function Home() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-slate-400 font-medium">Centering</span>
-                    <span className="text-xs font-bold text-cyan-400">{report.centering.score}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Highlighted Centering Data Block */}
+                <div className="bg-cyan-950/30 p-3 rounded-xl border border-cyan-800/50">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[11px] text-cyan-400 font-bold uppercase tracking-wide">Centering Ratio</span>
+                    <span className="text-xs font-black text-cyan-300">{report.centering.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">{report.centering.note}</p>
+                  <p className="text-sm font-semibold text-white">{report.centering.note}</p>
+                  <p className="text-[10px] text-cyan-500 mt-1">{report.centering.rubric}</p>
                 </div>
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+
+                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-slate-400 font-medium">Corners</span>
-                    <span className="text-xs font-bold text-cyan-400">{report.corners.score}</span>
+                    <span className="text-xs font-bold text-slate-300">{report.corners.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">{report.corners.note}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{report.corners.note}</p>
                 </div>
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-slate-400 font-medium">Edges</span>
-                    <span className="text-xs font-bold text-cyan-400">{report.edges.score}</span>
+                    <span className="text-xs font-bold text-slate-300">{report.edges.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">{report.edges.note}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{report.edges.note}</p>
                 </div>
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-slate-400 font-medium">Surface</span>
-                    <span className="text-xs font-bold text-cyan-400">{report.surface.score}</span>
+                    <span className="text-xs font-bold text-slate-300">{report.surface.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">{report.surface.note}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{report.surface.note}</p>
                 </div>
               </div>
             </div>
@@ -598,18 +595,14 @@ export default function Home() {
               muted
               className="w-full h-full object-cover"
             />
-            {/* Card alignment overlay box */}
-            <div className="absolute border-2 border-dashed border-cyan-400/80 rounded-xl w-[70%] h-[80%] pointer-events-none flex items-center justify-center">
-              <span className="text-[11px] font-bold text-cyan-300/80 bg-slate-950/60 px-2 py-0.5 rounded">
-                Align Card Edges Here
-              </span>
-            </div>
+            {/* The transparent physical grid overlay */}
+            <CenteringGridOverlay />
           </div>
 
           <div className="w-full max-w-md flex justify-center pb-6">
             <button
               onClick={capturePhoto}
-              className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-2xl text-slate-950 font-black cursor-pointer transition active:scale-95"
+              className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-2xl text-slate-950 font-black cursor-pointer transition active:scale-95 z-50"
             >
               📸
             </button>
