@@ -175,7 +175,6 @@ export default function Home() {
         <circle cx="50" cy="70" r="4.5" stroke="#00FFFF" strokeWidth="0.8" fill="none" />
         <circle cx="50" cy="70" r="1.5" fill="#00FFFF" />
         
-        {/* Top Left */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = o, cy = o; const vx = cx, vy = 26 - o; const hx = 26 - o, hy = cy;
@@ -183,7 +182,6 @@ export default function Home() {
           })}
         </g>
         
-        {/* Top Right */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = 100 - o, cy = o; const vx = cx, vy = 26 - o; const hx = 74 + o, hy = cy;
@@ -191,7 +189,6 @@ export default function Home() {
           })}
         </g>
 
-        {/* Bottom Left */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = o, cy = 140 - o; const vx = cx, vy = 114 + o; const hx = 26 - o, hy = cy;
@@ -199,7 +196,6 @@ export default function Home() {
           })}
         </g>
 
-        {/* Bottom Right */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = 100 - o, cy = 140 - o; const vx = cx, vy = 114 + o; const hx = 74 + o, hy = cy;
@@ -219,6 +215,10 @@ export default function Home() {
     setIsScanning(true);
     setReport(null);
     setIsListed(false);
+    
+    // Strict 15-second minimum wait timer
+    const strictTimer = new Promise(resolve => setTimeout(resolve, 15000));
+
     setScanPhase('CALCULATING L/R & T/B CENTERING RATIOS...');
     setTimeout(() => setScanPhase('ANALYZING CORNERS & MICROSCOPIC EDGES...'), 3500);
     setTimeout(() => setScanPhase('CHECKING SURFACE REFLECTIVITY & PRINT LINES...'), 7000);
@@ -234,6 +234,10 @@ export default function Home() {
       if (!res.ok) throw new Error('API request failed');
 
       const data = await res.json();
+      
+      // Force app to wait until full 15 seconds is over
+      await strictTimer; 
+      
       setReport(data);
       setListPrice(data.gradedVal?.replace(/[^0-9.]/g, '') || '50');
       
@@ -255,6 +259,9 @@ export default function Home() {
           edges: { score: '9.5' },
           surface: { score: '9.5' }
       };
+      
+      // Force app to wait until full 15 seconds is over
+      await strictTimer; 
       
       setReport(fallbackData);
       setListPrice('240');
@@ -550,7 +557,6 @@ export default function Home() {
               </div>
             </div>
             
-            {/* RESTORED HIGH GRADES WIDGET WITH PICTURES */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
               <h3 className="text-sm font-bold text-slate-200 mb-3">Verified High Grades</h3>
               <div className="grid grid-cols-2 gap-3">
