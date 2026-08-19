@@ -16,7 +16,7 @@ const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
-// Hardcoded initial marketplace listings
+// Initial marketplace listings
 const INITIAL_LISTINGS = [
   {
     id: 'FRICK-88412',
@@ -87,7 +87,6 @@ export default function Home() {
 
   // Marketplace Listings State
   const [listings, setListings] = useState(INITIAL_LISTINGS);
-  const [selectedListing, setSelectedListing] = useState(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Auth Listener
