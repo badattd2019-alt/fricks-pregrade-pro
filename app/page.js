@@ -44,6 +44,24 @@ const highGrades = [
   },
 ];
 
+const mockCommunityPool = [
+  { title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)' },
+  { title: '2021 Evolving Skies Umbreon VMAX #215', status: 'PSA 9.5 MT (Est. +$420 ROI)' },
+  { title: '1996 Japanese Base Charizard No Rarity', status: 'PSA 8.5 NM-MT' },
+  { title: '2023 151 Special Illustration Erika #203', status: 'PSA 10 (Est. +$115 ROI)' },
+  { title: '2003 Skyridge Gengar Holo #13', status: 'PSA 9 GM' },
+  { title: '2020 Champions Path Charizard V #079', status: 'PSA 10 (Est. +$260 ROI)' },
+  { title: '1999 Fossil Gengar 1st Edition #5', status: 'PSA 9 GM' },
+  { title: '2024 Paldean Fates Mew ex #232', status: 'PSA 9.5 MT' },
+];
+
+const initialActivity = [
+  { id: 1, title: '2022 Pokemon Go Radiant Charizard #011', status: 'PSA 10 (Est. +$180 ROI)', time: '12s ago' },
+  { id: 2, title: '2022 Pokemon Go Radiant Blastoise #018', status: 'PSA 9.5 MT', time: '1m ago' },
+  { id: 3, title: '1999 Base Mewtwo #10', status: 'PSA 9 GM', time: '3m ago' },
+  { id: 4, title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)', time: '5m ago' },
+];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState('scanner');
   const [user, setUser] = useState(null);
@@ -59,10 +77,12 @@ export default function Home() {
   const [scanPhase, setScanPhase] = useState('');
   const [scanPercent, setScanPercent] = useState(0);
   const [report, setReport] = useState(null);
+  const [activity, setActivity] = useState(initialActivity);
   const [scannedGallery, setScannedGallery] = useState(highGrades);
   const [scansLeft, setScansLeft] = useState(3);
   const [isPro, setIsPro] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [monthlyCards, setMonthlyCards] = useState(15);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraTargetSide, setCameraTargetSide] = useState(null);
 
@@ -83,6 +103,26 @@ export default function Home() {
         setUser(JSON.parse(savedUser));
       }
     }
+  }, []);
+
+  // Live Community Scans rotation loop
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomCard = mockCommunityPool[Math.floor(Math.random() * mockCommunityPool.length)];
+      setActivity((prev) => {
+        if (prev[0]?.title === randomCard.title) return prev;
+        return [
+          {
+            id: Math.random(),
+            title: randomCard.title,
+            status: randomCard.status,
+            time: 'Just now',
+          },
+          ...prev.slice(0, 3),
+        ];
+      });
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleAuthSubmit = (e) => {
@@ -249,7 +289,7 @@ export default function Home() {
     );
   };
 
-  // FULL 15-SECOND AUTHENTIC INSPECTION + REALTIME PRICE MATRIX
+  // FULL 15-SECOND AUTHENTIC INSPECTION + FINANCIAL PREDICTION
   const runScan = async () => {
     if (!isPro && scansLeft <= 0) {
       setShowPaywall(true);
@@ -279,7 +319,7 @@ export default function Home() {
 
     const p4 = setTimeout(() => {
       setScanPercent(95);
-      setScanPhase('5/5: QUERYING REAL-TIME PSA POPULATION & SALES PRICING...');
+      setScanPhase('5/5: QUERYING REAL-TIME PSA SALES PRICING & MARKET PREDICTIONS...');
     }, 12500);
 
     const fallbackResult = {
@@ -288,12 +328,6 @@ export default function Home() {
       rawVal: '$65.00',
       gradedVal: '$280.00',
       recommendation: 'STRONG SUBMIT (+$215 Est. ROI)',
-      prices: {
-        raw: '$65.00',
-        psa8: '$95.00',
-        psa9: '$160.00',
-        psa10: '$280.00',
-      },
       centering: {
         score: '9.5',
         measurements: 'Left/Right: 52/48% | Top/Bottom: 50/50%',
@@ -318,15 +352,7 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         if (data && data.grade) {
-          applyScanResult({
-            ...data,
-            prices: data.prices || {
-              raw: data.rawVal || '$65.00',
-              psa8: '$95.00',
-              psa9: '$160.00',
-              psa10: data.gradedVal || '$280.00',
-            },
-          });
+          applyScanResult(data);
           return;
         }
       }
@@ -364,6 +390,17 @@ export default function Home() {
     if (!isPro) {
       setScansLeft((prev) => Math.max(0, prev - 1));
     }
+
+    // Add this new scan immediately to the Live Community Scans feed
+    setActivity((prev) => [
+      {
+        id: Math.random(),
+        title: data.title || cardName || 'Graded Card',
+        status: `${data.grade} (${data.recommendation || 'Scanned just now'})`,
+        time: 'Just now',
+      },
+      ...prev.slice(0, 3),
+    ]);
   };
 
   const handlePublishListing = (e) => {
@@ -397,11 +434,12 @@ export default function Home() {
     window.location.href = STRIPE_CHECKOUT_URL;
   };
 
+  const estimatedSavings = Math.round(monthlyCards * 0.4 * 25);
   const myListings = scannedGallery.filter((card) => user && card.seller === user.username);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-10 font-sans selection:bg-blue-500 selection:text-white relative">
-      {/* HEADER */}
+      {/* HEADER WITH AUTH & TAB CONTROLS */}
       <header className="max-w-6xl mx-auto border-b border-slate-800 pb-6 mb-8 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -491,323 +529,376 @@ export default function Home() {
 
       {/* VIEW 1: SCANNER TAB */}
       {activeTab === 'scanner' && (
-        <main className="max-w-6xl mx-auto space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
-            <div className="mb-6 bg-slate-950 border border-slate-800 rounded-xl p-4">
-              <label htmlFor="cardName" className="block text-xs font-bold text-cyan-400 uppercase tracking-wide mb-2">
-                1. Identify Card (Optional Hint)
-              </label>
-              <input
-                id="cardName"
-                type="text"
-                placeholder="e.g. 1999 Base Set Charizard Holo #4"
-                value={cardName}
-                onChange={(e) => setCardName(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition shadow-inner"
-              />
-            </div>
-
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-base md:text-lg font-bold text-slate-100">2. Dual-Side High Precision Scan</h2>
-                <p className="text-xs text-slate-400">Take a direct camera photo or choose from your files.</p>
+        <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <section className="lg:col-span-2 space-y-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
+              <div className="mb-6 bg-slate-950 border border-slate-800 rounded-xl p-4">
+                <label htmlFor="cardName" className="block text-xs font-bold text-cyan-400 uppercase tracking-wide mb-2">
+                  1. Identify Card (Optional Hint)
+                </label>
+                <input
+                  id="cardName"
+                  type="text"
+                  placeholder="e.g. 1999 Base Set Charizard Holo #4"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition shadow-inner"
+                />
               </div>
-              {(frontImage || backImage) && (
+
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-base md:text-lg font-bold text-slate-100">2. Dual-Side High Precision Scan</h2>
+                  <p className="text-xs text-slate-400">Take a direct camera photo or choose from your files.</p>
+                </div>
+                {(frontImage || backImage) && (
+                  <button
+                    onClick={() => {
+                      setFrontImage(null);
+                      setBackImage(null);
+                      setReport(null);
+                    }}
+                    className="text-xs text-slate-400 hover:text-red-400 transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {/* FRONT SIDE */}
+                <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
+                  <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
+                    FRONT SIDE
+                  </span>
+
+                  {frontImage ? (
+                    <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
+                      <img src={frontImage} alt="Front preview" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" />
+                      <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
+                        <img src={frontImage} alt="Front clear" className="absolute inset-0 w-full h-full object-cover" />
+                        <ExactDigitalCenteringTool />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFrontImage(null);
+                          setReport(null);
+                        }}
+                        className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2 z-20">
+                      <button
+                        type="button"
+                        onClick={() => openCamera('front')}
+                        className="w-full max-w-[210px] py-2.5 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl text-center cursor-pointer shadow-lg flex items-center justify-center gap-2 transition"
+                      >
+                        <span>📷 Open Camera</span>
+                      </button>
+                      <label
+                        htmlFor="front-gallery-picker"
+                        className="w-full max-w-[210px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-2 transition"
+                      >
+                        <span>📁 Photos / Files</span>
+                        <input id="front-gallery-picker" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'front')} className="hidden" />
+                      </label>
+                    </div>
+                  )}
+
+                  {/* 15-SECOND LIVE SCAN DIAGNOSTIC OVERLAY */}
+                  {isScanning && (
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-4 border-2 border-cyan-400 z-50 pointer-events-none transition-all duration-300">
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500 shadow-[0_0_10px_#22d3ee]"
+                          style={{ width: `${scanPercent}%` }}
+                        />
+                      </div>
+                      <div className="animate-spin text-2xl mb-2">⚙️</div>
+                      <span className="text-xs font-mono font-bold text-cyan-300 text-center leading-relaxed px-2">
+                        {scanPhase}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono mt-3">
+                        OPTICAL SCAN IN PROGRESS ({scanPercent}%)
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* BACK SIDE */}
+                <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
+                  <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
+                    BACK SIDE
+                  </span>
+
+                  {backImage ? (
+                    <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
+                      <img src={backImage} alt="Back preview" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" />
+                      <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
+                        <img src={backImage} alt="Back clear" className="absolute inset-0 w-full h-full object-cover" />
+                        <ExactDigitalCenteringTool />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBackImage(null);
+                          setReport(null);
+                        }}
+                        className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2 z-20">
+                      <button
+                        type="button"
+                        onClick={() => openCamera('back')}
+                        className="w-full max-w-[210px] py-2.5 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl text-center cursor-pointer shadow-lg flex items-center justify-center gap-2 transition"
+                      >
+                        <span>📷 Open Camera</span>
+                      </button>
+                      <label
+                        htmlFor="back-gallery-picker"
+                        className="w-full max-w-[210px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-2 transition"
+                      >
+                        <span>📁 Photos / Files</span>
+                        <input id="back-gallery-picker" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'back')} className="hidden" />
+                      </label>
+                    </div>
+                  )}
+
+                  {/* BACK SIDE LIVE SCAN OVERLAY */}
+                  {isScanning && (
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-4 border-2 border-cyan-400 z-50 pointer-events-none transition-all duration-300">
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500 shadow-[0_0_10px_#22d3ee]"
+                          style={{ width: `${scanPercent}%` }}
+                        />
+                      </div>
+                      <div className="animate-spin text-2xl mb-2">🔍</div>
+                      <span className="text-xs font-mono font-bold text-cyan-300 text-center leading-relaxed px-2">
+                        {scanPhase}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono mt-3">
+                        ANALYZING REVERSE OPTICAL MATRIX ({scanPercent}%)
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {isPro || scansLeft > 0 ? (
                 <button
-                  onClick={() => {
-                    setFrontImage(null);
-                    setBackImage(null);
-                    setReport(null);
-                  }}
-                  className="text-xs text-slate-400 hover:text-red-400 transition cursor-pointer"
+                  onClick={runScan}
+                  disabled={isScanning || (!frontImage && !backImage)}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg transition duration-150 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Clear All
+                  {isScanning ? (
+                    <span className="flex items-center gap-2">
+                      <span className="animate-pulse">●</span> OPTICAL GRADING IN PROGRESS (15s DIAGNOSTICS)...
+                    </span>
+                  ) : (
+                    <>
+                      <span>RUN PRE-GRADE INSPECTION</span>
+                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                        {isPro ? 'PRO UNLIMITED' : `(${scansLeft} Left)`}
+                      </span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowPaywall(true)}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-white font-extrabold rounded-xl shadow-lg shadow-orange-500/20 transition cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>🔒 TRIAL LIMIT REACHED — UNLOCK UNLIMITED PRO ($9.99/mo)</span>
                 </button>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* FRONT SIDE */}
-              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
-                <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
-                  FRONT SIDE
-                </span>
-
-                {frontImage ? (
-                  <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
-                    <img src={frontImage} alt="Front preview" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" />
-                    <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
-                      <img src={frontImage} alt="Front clear" className="absolute inset-0 w-full h-full object-cover" />
-                      <ExactDigitalCenteringTool />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFrontImage(null);
-                        setReport(null);
-                      }}
-                      className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2 z-20">
-                    <button
-                      type="button"
-                      onClick={() => openCamera('front')}
-                      className="w-full max-w-[210px] py-2.5 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl text-center cursor-pointer shadow-lg flex items-center justify-center gap-2 transition"
-                    >
-                      <span>📷 Open Camera</span>
-                    </button>
-                    <label
-                      htmlFor="front-gallery-picker"
-                      className="w-full max-w-[210px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-2 transition"
-                    >
-                      <span>📁 Photos / Files</span>
-                      <input id="front-gallery-picker" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'front')} className="hidden" />
-                    </label>
-                  </div>
-                )}
-
-                {/* 15-SECOND LIVE SCAN DIAGNOSTIC OVERLAY */}
-                {isScanning && (
-                  <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-4 border-2 border-cyan-400 z-50 pointer-events-none transition-all duration-300">
-                    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
-                      <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500 shadow-[0_0_10px_#22d3ee]"
-                        style={{ width: `${scanPercent}%` }}
-                      />
-                    </div>
-                    <div className="animate-spin text-2xl mb-2">⚙️</div>
-                    <span className="text-xs font-mono font-bold text-cyan-300 text-center leading-relaxed px-2">
-                      {scanPhase}
+            {report && (
+              <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                  <div>
+                    <span className="text-xs font-bold text-cyan-400 uppercase tracking-wide">
+                      Inspection Complete
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono mt-3">
-                      OPTICAL SCAN IN PROGRESS ({scanPercent}%)
-                    </span>
+                    <h3 className="text-xl font-bold text-white">{report.title}</h3>
                   </div>
-                )}
-              </div>
-
-              {/* BACK SIDE */}
-              <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
-                <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
-                  BACK SIDE
-                </span>
-
-                {backImage ? (
-                  <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
-                    <img src={backImage} alt="Back preview" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" />
-                    <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
-                      <img src={backImage} alt="Back clear" className="absolute inset-0 w-full h-full object-cover" />
-                      <ExactDigitalCenteringTool />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBackImage(null);
-                        setReport(null);
-                      }}
-                      className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
-                    >
-                      ✕
-                    </button>
+                  <div className="text-right">
+                    <p className="text-[10px] text-slate-400">Estimated Grade</p>
+                    <p className="text-lg font-black text-cyan-300">{report.grade}</p>
                   </div>
-                ) : (
-                  <div className="w-full flex flex-col items-center justify-center gap-3 pt-6 pb-2 z-20">
-                    <button
-                      type="button"
-                      onClick={() => openCamera('back')}
-                      className="w-full max-w-[210px] py-2.5 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl text-center cursor-pointer shadow-lg flex items-center justify-center gap-2 transition"
-                    >
-                      <span>📷 Open Camera</span>
-                    </button>
-                    <label
-                      htmlFor="back-gallery-picker"
-                      className="w-full max-w-[210px] py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl text-center cursor-pointer border border-slate-700 flex items-center justify-center gap-2 transition"
-                    >
-                      <span>📁 Photos / Files</span>
-                      <input id="back-gallery-picker" type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'back')} className="hidden" />
-                    </label>
-                  </div>
-                )}
-
-                {/* BACK SIDE LIVE SCAN OVERLAY */}
-                {isScanning && (
-                  <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-4 border-2 border-cyan-400 z-50 pointer-events-none transition-all duration-300">
-                    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
-                      <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500 shadow-[0_0_10px_#22d3ee]"
-                        style={{ width: `${scanPercent}%` }}
-                      />
-                    </div>
-                    <div className="animate-spin text-2xl mb-2">🔍</div>
-                    <span className="text-xs font-mono font-bold text-cyan-300 text-center leading-relaxed px-2">
-                      {scanPhase}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono mt-3">
-                      ANALYZING REVERSE OPTICAL MATRIX ({scanPercent}%)
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {isPro || scansLeft > 0 ? (
-              <button
-                onClick={runScan}
-                disabled={isScanning || (!frontImage && !backImage)}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg transition duration-150 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
-              >
-                {isScanning ? (
-                  <span className="flex items-center gap-2">
-                    <span className="animate-pulse">●</span> OPTICAL GRADING IN PROGRESS (15s DIAGNOSTICS)...
-                  </span>
-                ) : (
-                  <>
-                    <span>RUN PRE-GRADE INSPECTION</span>
-                    <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
-                      {isPro ? 'PRO UNLIMITED' : `(${scansLeft} Left)`}
-                    </span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowPaywall(true)}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-white font-extrabold rounded-xl shadow-lg shadow-orange-500/20 transition cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>🔒 TRIAL LIMIT REACHED — UNLOCK UNLIMITED PRO ($9.99/mo)</span>
-              </button>
-            )}
-          </div>
-
-          {report && (
-            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                <div>
-                  <span className="text-xs font-bold text-cyan-400 uppercase tracking-wide">
-                    Inspection Complete
-                  </span>
-                  <h3 className="text-xl font-bold text-white">{report.title}</h3>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-slate-400">Estimated Grade</p>
-                  <p className="text-lg font-black text-cyan-300">{report.grade}</p>
-                </div>
-              </div>
 
-              {/* REALTIME PSA PRICE MATRIX BY GRADE TIER */}
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-                    📈 Live Market Pricing Matrix (PSA Population)
-                  </span>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded font-bold">
+                {/* THE FINANCIAL PREDICTION LINE */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[11px] text-slate-400 uppercase font-semibold">
+                      Financial Prediction
+                    </span>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      Raw Price: <span className="font-semibold text-white">{report.rawVal}</span> → Graded Value:{' '}
+                      <span className="font-bold text-emerald-400">{report.gradedVal}</span>
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-700/50 text-emerald-300">
                     {report.recommendation}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div className="bg-slate-900/80 border border-slate-800 p-2.5 rounded-lg">
-                    <span className="text-[10px] text-slate-400 block font-semibold">RAW UNGRADED</span>
-                    <span className="text-sm font-bold text-white mt-1 block">{report.prices?.raw || report.rawVal}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-cyan-950/30 p-3 rounded-xl border border-cyan-800/50">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[11px] text-cyan-400 font-bold uppercase tracking-wide">Centering</span>
+                      <span className="text-xs font-black text-cyan-300">{report.centering?.score}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-white">{report.centering?.measurements}</p>
+                    <p className="text-xs font-medium text-cyan-300 mt-0.5">{report.centering?.ratio}</p>
                   </div>
-                  <div className="bg-slate-900/80 border border-slate-800 p-2.5 rounded-lg">
-                    <span className="text-[10px] text-slate-400 block font-semibold">PSA 8 NM-MT</span>
-                    <span className="text-sm font-bold text-slate-300 mt-1 block">{report.prices?.psa8 || '$95.00'}</span>
-                  </div>
-                  <div className="bg-slate-900/80 border border-blue-900/40 p-2.5 rounded-lg">
-                    <span className="text-[10px] text-blue-400 block font-semibold">PSA 9 MINT</span>
-                    <span className="text-sm font-bold text-blue-300 mt-1 block">{report.prices?.psa9 || '$160.00'}</span>
-                  </div>
-                  <div className="bg-emerald-950/40 border border-emerald-700/50 p-2.5 rounded-lg">
-                    <span className="text-[10px] text-emerald-400 block font-extrabold">PSA 10 GEM MT</span>
-                    <span className="text-sm font-black text-emerald-400 mt-1 block">{report.prices?.psa10 || report.gradedVal}</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-cyan-950/30 p-3 rounded-xl border border-cyan-800/50">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[11px] text-cyan-400 font-bold uppercase tracking-wide">Centering</span>
-                    <span className="text-xs font-black text-cyan-300">{report.centering?.score}</span>
+                  <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] text-slate-400 font-medium">Corners</span>
+                      <span className="text-xs font-bold text-slate-300">{report.corners?.score}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">{report.corners?.note}</p>
                   </div>
-                  <p className="text-sm font-semibold text-white">{report.centering?.measurements}</p>
-                  <p className="text-xs font-medium text-cyan-300 mt-0.5">{report.centering?.ratio}</p>
-                </div>
 
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-slate-400 font-medium">Corners</span>
-                    <span className="text-xs font-bold text-slate-300">{report.corners?.score}</span>
+                  <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] text-slate-400 font-medium">Edges</span>
+                      <span className="text-xs font-bold text-slate-300">{report.edges?.score}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">{report.edges?.note}</p>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{report.corners?.note}</p>
-                </div>
 
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-slate-400 font-medium">Edges</span>
-                    <span className="text-xs font-bold text-slate-300">{report.edges?.score}</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{report.edges?.note}</p>
-                </div>
-
-                <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
-                  <div className="flex justify-between items-center">
+                  <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <span className="text-[11px] text-slate-400 font-medium">Surface</span>
                     <span className="text-xs font-bold text-slate-300">{report.surface?.score}</span>
+                    <p className="text-[10px] text-slate-500 mt-1">{report.surface?.note}</p>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{report.surface?.note}</p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      setAuthModalOpen(true);
+                    } else {
+                      setSellModalOpen(true);
+                    }
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+                >
+                  <span>💰 List This Card in Marketplace (@{user ? user.username : 'Login to Sell'})</span>
+                </button>
+              </div>
+            )}
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
+              <h3 className="text-base font-bold text-white mb-1">
+                Submission Fee Savings Calculator
+              </h3>
+              <p className="text-xs text-slate-400 mb-4">
+                See how much you save each month by filtering out non-Gem cards before sending them to PSA.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-xs font-semibold text-slate-300 mb-1.5">
+                    <span>Cards you consider grading monthly:</span>
+                    <span className="text-cyan-400 font-bold">{monthlyCards} Cards</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="100"
+                    step="5"
+                    value={monthlyCards}
+                    onChange={(e) => setMonthlyCards(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  />
+                </div>
+
+                <div className="bg-slate-950 border border-emerald-900/50 rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">
+                      Estimated Monthly Savings
+                    </span>
+                    <p className="text-xs text-slate-400 mt-0.5">By avoiding ~$25 fees on ~40% rejected cards</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-extrabold text-emerald-400">~${estimatedSavings}</span>
+                    <span className="text-[10px] text-slate-400 block">/ month saved</span>
+                  </div>
                 </div>
               </div>
+            </div>
+          </section>
 
-              <button
-                onClick={() => {
-                  if (!user) {
-                    setAuthModalOpen(true);
-                  } else {
-                    setSellModalOpen(true);
-                  }
-                }}
-                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
-              >
-                <span>💰 List This Card in Marketplace (@{user ? user.username : 'Login to Sell'})</span>
-              </button>
+          {/* SIDEBAR: LIVE COMMUNITY SCANS & VERIFIED HIGH GRADES */}
+          <aside className="space-y-6">
+            {/* LIVE COMMUNITY SCANS (Simulated Live Activity with green pulse) */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-slate-200">Live Community Scans</h3>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              </div>
+              <div className="space-y-2.5">
+                {activity.map((item) => (
+                  <div
+                    key={item.id}
+                    className="text-xs border-b border-slate-800/80 pb-2 last:border-0 last:pb-0"
+                  >
+                    <p className="font-semibold text-slate-200 truncate">{item.title}</p>
+                    <div className="flex justify-between text-[11px] mt-0.5">
+                      <span className="text-emerald-400 font-medium">{item.status}</span>
+                      <span className="text-slate-500">{item.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
 
-          {/* VERIFIED HIGH GRADES SECTION */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-200">Verified High Grades</h3>
-              <span className="text-[10px] text-cyan-400 font-semibold bg-cyan-950/60 border border-cyan-800/40 px-2 py-0.5 rounded-full">
-                Live Feed
-              </span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {scannedGallery.map((card) => (
-                <div
-                  key={card.id}
-                  className="bg-slate-950 border border-slate-800/90 rounded-xl p-3 flex flex-col justify-between hover:border-cyan-500/50 transition"
-                >
-                  <div className="w-full flex justify-between items-center text-[10px] font-bold mb-2">
-                    <span className="text-red-500 font-black">{card.company}</span>
-                    <span className="bg-cyan-500 text-slate-950 px-1.5 py-0.5 rounded font-black">
-                      {card.grade}
-                    </span>
+            {/* VERIFIED HIGH GRADES GALLERY */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-slate-200">Verified High Grades</h3>
+                <span className="text-[10px] text-cyan-400 font-semibold bg-cyan-950/60 border border-cyan-800/40 px-2 py-0.5 rounded-full">
+                  Live Feed
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 max-h-[520px] overflow-y-auto pr-1">
+                {scannedGallery.map((card) => (
+                  <div
+                    key={card.id}
+                    className="bg-slate-950 border border-slate-800/90 rounded-xl p-2.5 flex flex-col justify-between hover:border-cyan-500/50 transition"
+                  >
+                    <div className="w-full flex justify-between items-center text-[10px] font-bold mb-1.5">
+                      <span className="text-red-500 font-black">{card.company}</span>
+                      <span className="bg-cyan-500 text-slate-950 px-1.5 py-0.5 rounded font-black">
+                        {card.grade}
+                      </span>
+                    </div>
+                    <div className="w-full h-28 flex items-center justify-center overflow-hidden rounded bg-slate-900/60 my-1">
+                      <img src={card.image} alt={card.title} className="max-h-full max-w-full object-contain" />
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-300 truncate mt-1">{card.title}</p>
+                    <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Est. {card.estValue}</p>
                   </div>
-                  <div className="w-full h-36 flex items-center justify-center overflow-hidden rounded bg-slate-900/60 my-1 p-1">
-                    <img src={card.image} alt={card.title} className="max-h-full max-w-full object-contain" />
-                  </div>
-                  <p className="text-[11px] font-semibold text-slate-300 truncate mt-2">{card.title}</p>
-                  <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Est. {card.estValue}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </aside>
         </main>
       )}
 
