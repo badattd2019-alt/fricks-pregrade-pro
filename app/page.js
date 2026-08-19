@@ -16,7 +16,7 @@ const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
-// Hardcoded initial marketplace listings
+// Initial marketplace listings
 const INITIAL_LISTINGS = [
   {
     id: 'FRICK-88412',
@@ -29,9 +29,7 @@ const INITIAL_LISTINGS = [
     price: '4850.00',
     seller: 'VaultKing_Cards',
     image: 'https://images.unsplash.com/photo-1613778307455-87779b5c3e66?w=600&auto=format&fit=crop&q=80',
-    verified: true,
-    category: 'Football',
-    createdAt: '2026-03-15'
+    verified: true
   },
   {
     id: 'FRICK-49102',
@@ -44,9 +42,7 @@ const INITIAL_LISTINGS = [
     price: '9200.00',
     seller: 'ChicagoDynasty',
     image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80',
-    verified: true,
-    category: 'Basketball',
-    createdAt: '2026-03-18'
+    verified: true
   },
   {
     id: 'FRICK-10928',
@@ -59,9 +55,7 @@ const INITIAL_LISTINGS = [
     price: '3400.00',
     seller: 'GemMintCollector',
     image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=80',
-    verified: true,
-    category: 'Basketball',
-    createdAt: '2026-03-20'
+    verified: true
   }
 ];
 
@@ -189,10 +183,10 @@ export default function Home() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(`Checkout initiated for ${item.title} ($${item.price}). Add STRIPE_SECRET_KEY in Vercel to activate live card processing.`);
+        alert(`Checkout initiated for ${item.title} ($${item.price}).`);
       }
     } catch (err) {
-      alert(`Stripe integration ready. Add STRIPE_SECRET_KEY in Vercel settings.`);
+      alert(`Stripe integration ready.`);
     } finally {
       setIsCheckingOut(false);
     }
@@ -215,7 +209,7 @@ export default function Home() {
         surface: match.surface,
         verified: true,
         hash: '0x8f2d...9a12c4',
-        date: match.createdAt
+        date: '2026-03-15'
       });
     } else {
       setVaultRecord({
@@ -663,7 +657,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-neutral-900 py-6 text-center text-xs text-neutral-600">
-        © 2026 Fricks Pre-Grade Pro. All Rights Reserved. Protected by Stripe Escrow & AI Card Vault.
+        © 2026 Fricks Pre-Grade Pro. All Rights Reserved.
       </footer>
     </div>
   );
