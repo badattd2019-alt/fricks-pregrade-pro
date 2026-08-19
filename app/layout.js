@@ -22,8 +22,8 @@ export default function RootLayout({ children }) {
               if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js')
-                    .then(function(reg) { console.log('PWA Service Worker registered:', reg.scope); })
-                    .catch(function(err) { console.log('PWA SW registration failed:', err); });
+                    .then(function(reg) { console.log('SW Registered'); })
+                    .catch(function(err) { console.log('SW Error:', err); });
                 });
               }
             `,
