@@ -62,6 +62,7 @@ export default function Home() {
   const [frontImage, setFrontImage] = useState(null);
   const [backImage, setBackImage] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanPhase, setScanPhase] = useState('');
   const [report, setReport] = useState(null);
   const [activity, setActivity] = useState(initialActivity);
   const [scansLeft, setScansLeft] = useState(3);
@@ -180,7 +181,6 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // High-Visibility Neon SVG Locked to Card Proportions
   const ExactDigitalCenteringTool = () => {
     const lines = [1, 2, 3, 4, 5];
     return (
@@ -190,13 +190,11 @@ export default function Home() {
         viewBox="0 0 100 140" 
         preserveAspectRatio="xMidYMid meet"
       >
-        {/* Center Crosshairs */}
         <line x1="50" y1="0" x2="50" y2="140" stroke="#00FFFF" strokeWidth="0.8" />
         <line x1="0" y1="70" x2="100" y2="70" stroke="#00FFFF" strokeWidth="0.8" />
         <circle cx="50" cy="70" r="4.5" stroke="#00FFFF" strokeWidth="0.8" fill="none" />
         <circle cx="50" cy="70" r="1.5" fill="#00FFFF" />
 
-        {/* TOP LEFT CORNER 1-5 */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; 
@@ -213,7 +211,6 @@ export default function Home() {
           })}
         </g>
 
-        {/* TOP RIGHT CORNER 1-5 */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; 
@@ -230,7 +227,6 @@ export default function Home() {
           })}
         </g>
 
-        {/* BOTTOM LEFT CORNER 1-5 */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; 
@@ -247,7 +243,6 @@ export default function Home() {
           })}
         </g>
 
-        {/* BOTTOM RIGHT CORNER 1-5 */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; 
@@ -276,35 +271,72 @@ export default function Home() {
 
     setIsScanning(true);
     setReport(null);
+    setScanPhase('CALCULATING 60/40 RATIOS...');
+
+    // Slow down the scan and show the user what the AI is doing
+    setTimeout(() => setScanPhase('INSPECTING CORNERS & EDGES...'), 2500);
+    setTimeout(() => setScanPhase('CHECKING SURFACE REFLECTIVITY...'), 4500);
+    setTimeout(() => setScanPhase('FETCHING LIVE MARKET DATA...'), 6500);
 
     setTimeout(() => {
       setIsScanning(false);
+      setScanPhase('');
       if (!isPro) {
         setScansLeft((prev) => Math.max(0, prev - 1));
       }
 
+      // Dynamic Demo Engine: Randomly select a realistic card outcome
+      const mockOutcomes = [
+        {
+          grade: 'GEM-MT 10', rawVal: '$120.00', gradedVal: '$1,450.00',
+          cScore: '10.0', cMeas: 'L/R: 2.5-2.5 (50/50) | T/B: 2.5-2.5 (50/50)',
+          ratio: 'Perfect 50/50 Centering', rubric: 'PSA Standard: GEM-MT 10 (Front within 55/45 to 60/40 limit)',
+          rec: 'STRONG SUBMISSION CANDIDATE (Est. +$1,330 Value Gain)'
+        },
+        {
+          grade: 'MINT 9', rawVal: '$45.00', gradedVal: '$110.00',
+          cScore: '9.0', cMeas: 'L/R: 3.5-2.0 (64/36) | T/B: 2.5-2.0 (56/44)',
+          ratio: 'Missed 60/40 limit by 4%', rubric: 'PSA Standard: MINT 9 (Front within 60/40 to 65/35 limit)',
+          rec: 'MARGINAL SUBMISSION (Est. +$65 Value Gain)'
+        },
+        {
+          grade: 'NM-MT 8', rawVal: '$85.00', gradedVal: '$105.00',
+          cScore: '8.0', cMeas: 'L/R: 4.0-2.0 (67/33) | T/B: 3.0-2.0 (60/40)',
+          ratio: 'Noticeably heavy left border', rubric: 'PSA Standard: NM-MT 8 (Front within 65/35 to 70/30 limit)',
+          rec: 'DO NOT SUBMIT (Value gain does not cover grading fee)'
+        },
+        {
+          grade: 'GEM-MT 10', rawVal: '$45.00', gradedVal: '$280.00',
+          cScore: '10.0', cMeas: 'L/R: 3.0-2.0 (60/40) | T/B: 2.5-2.0 (56/44)',
+          ratio: 'All ratios hit the bold 60/40 threshold', rubric: 'PSA Standard: GEM-MT 10 (Front within 55/45 to 60/40 limit)',
+          rec: 'STRONG SUBMISSION CANDIDATE (Est. +$235 Value Gain)'
+        }
+      ];
+
+      const selectedOutcome = mockOutcomes[Math.floor(Math.random() * mockOutcomes.length)];
+
       const generatedReport = {
         title: 'Uploaded Collector Card',
-        grade: 'GEM-MT 10',
-        rawVal: '$45.00',
-        gradedVal: '$280.00',
+        grade: selectedOutcome.grade,
+        rawVal: selectedOutcome.rawVal,
+        gradedVal: selectedOutcome.gradedVal,
         centering: { 
-          score: '10.0', 
-          measurements: 'L/R: 3.0-2.0 (60/40) | T/B: 2.5-2.0 (56/44)',
-          ratio: 'All ratios hit the bold 60/40 threshold',
-          rubric: 'PSA Standard: GEM-MT 10 (Front within 55/45 to 60/40 limit)' 
+          score: selectedOutcome.cScore, 
+          measurements: selectedOutcome.cMeas,
+          ratio: selectedOutcome.ratio,
+          rubric: selectedOutcome.rubric 
         },
-        corners: { score: '10.0', note: 'Razor Sharp, No Whitening' },
-        edges: { score: '9.5', note: 'Micro-Friction Top Edge' },
-        surface: { score: '9.5', note: 'High Holographic Gloss' },
-        recommendation: 'STRONG SUBMISSION CANDIDATE (Est. +$235 Value Gain)',
+        corners: { score: '9.5', note: 'Minor edge friction detected' },
+        edges: { score: '9.5', note: 'Clean cuts' },
+        surface: { score: '9.5', note: 'No print lines detected' },
+        recommendation: selectedOutcome.rec,
       };
       setReport(generatedReport);
       setActivity((prev) => [
-        { id: Math.random(), title: generatedReport.title, status: `${generatedReport.grade} (Est. +$235 ROI)`, time: 'Just now' },
+        { id: Math.random(), title: generatedReport.title, status: `${generatedReport.grade} (Scanned just now)`, time: 'Just now' },
         ...prev.slice(0, 3),
       ]);
-    }, 2800);
+    }, 8500); // 8.5 second scan time
   };
 
   const redirectToStripe = () => {
@@ -319,7 +351,7 @@ export default function Home() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-0.5 rounded-full uppercase">
-              AI Grading Engine v4.0
+              AI Grading Engine v4.5
             </span>
             <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
               ● PSA Ratio Rubric Active
@@ -387,7 +419,6 @@ export default function Home() {
                       alt="Front preview" 
                       className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" 
                     />
-                    {/* The rigid aspect-ratio card slot applied to preview */}
                     <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
                        <img src={frontImage} alt="Front clear" className="absolute inset-0 w-full h-full object-cover" />
                        <ExactDigitalCenteringTool />
@@ -428,9 +459,9 @@ export default function Home() {
                 )}
 
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none">
+                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none transition-all duration-300">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CALCULATING 60/40 RATIOS...</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">{scanPhase}</span>
                   </div>
                 )}
               </div>
@@ -448,7 +479,6 @@ export default function Home() {
                       alt="Back preview" 
                       className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" 
                     />
-                    {/* The rigid aspect-ratio card slot applied to preview */}
                     <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
                        <img src={backImage} alt="Back clear" className="absolute inset-0 w-full h-full object-cover" />
                        <ExactDigitalCenteringTool />
@@ -489,9 +519,9 @@ export default function Home() {
                 )}
 
                 {isScanning && (
-                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none">
+                  <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none transition-all duration-300">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">CHECKING PSA STANDARDS...</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">{scanPhase}</span>
                   </div>
                 )}
               </div>
@@ -504,7 +534,7 @@ export default function Home() {
                 className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg transition duration-150 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
               >
                 {isScanning ? (
-                  <span>GENERATING CENTERING REPORT...</span>
+                  <span>SCANNING IN PROGRESS...</span>
                 ) : (
                   <>
                     <span>RUN PRE-GRADE INSPECTION</span>
@@ -525,7 +555,7 @@ export default function Home() {
           </div>
 
           {report && (
-            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5">
+            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div>
                   <span className="text-xs font-bold text-cyan-400 uppercase tracking-wide">Inspection Complete</span>
@@ -534,7 +564,9 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-[10px] text-slate-400">Estimated Grade</p>
-                    <p className="text-lg font-black text-cyan-300">{report.grade}</p>
+                    <p className={`text-lg font-black ${report.grade.includes('10') ? 'text-cyan-300' : report.grade.includes('9') ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {report.grade}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -546,13 +578,18 @@ export default function Home() {
                     Raw Price: <span className="font-semibold text-white">{report.rawVal}</span> → Graded Value: <span className="font-bold text-emerald-400">{report.gradedVal}</span>
                   </p>
                 </div>
-                <span className="text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-700/50 px-3 py-1.5 rounded-lg text-center">
+                <span className={`text-xs font-bold px-3 py-1.5 rounded-lg text-center ${
+                  report.grade.includes('10') 
+                    ? 'text-emerald-300 bg-emerald-950/80 border border-emerald-700/50' 
+                    : report.grade.includes('9')
+                    ? 'text-blue-300 bg-blue-950/80 border border-blue-700/50'
+                    : 'text-amber-300 bg-amber-950/80 border border-amber-700/50'
+                }`}>
                   {report.recommendation}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Highlighted Centering Data Block Mimicking PSA Standard Card */}
                 <div className="bg-cyan-950/30 p-3 rounded-xl border border-cyan-800/50">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[11px] text-cyan-400 font-bold uppercase tracking-wide">Centering Ratio</span>
@@ -678,7 +715,7 @@ export default function Home() {
         </aside>
       </main>
 
-      {/* LIVE CAMERA VIEWFINDER MODAL WITH STRICT ASPECT RATIO SCANNER BED */}
+      {/* LIVE CAMERA VIEWFINDER MODAL */}
       {cameraActive && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between p-4">
           <div className="w-full max-w-md flex justify-between items-center text-white pt-2 z-50">
@@ -694,7 +731,6 @@ export default function Home() {
           </div>
 
           <div className="relative w-full max-w-md h-[70vh] bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center">
-            {/* Live Camera Feed */}
             <video
               ref={videoRef}
               autoPlay
@@ -703,7 +739,6 @@ export default function Home() {
               className="absolute inset-0 w-full h-full object-cover z-10"
             />
             
-            {/* The Scanner Bed Window (Strict 2.5 x 3.5 Ratio) */}
             <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden">
                <div className="relative w-[80%] max-w-[300px] aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.7)] border-2 border-cyan-400 flex items-center justify-center">
                  <ExactDigitalCenteringTool />
