@@ -59,7 +59,7 @@ const initialActivity = [
 ];
 
 export default function Home() {
-  const [cardName, setCardName] = useState(''); // NEW: Card name input
+  const [cardName, setCardName] = useState('');
   const [frontImage, setFrontImage] = useState(null);
   const [backImage, setBackImage] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -272,11 +272,12 @@ export default function Home() {
 
     setIsScanning(true);
     setReport(null);
-    setScanPhase('CALCULATING 60/40 RATIOS...');
+    setScanPhase('CALCULATING L/R & T/B CENTERING RATIOS...');
 
-    setTimeout(() => setScanPhase('INSPECTING CORNERS & EDGES...'), 2500);
-    setTimeout(() => setScanPhase('CHECKING SURFACE REFLECTIVITY...'), 4500);
-    setTimeout(() => setScanPhase('FETCHING LIVE MARKET DATA...'), 6500);
+    // 15-second total scan time with progressive updates
+    setTimeout(() => setScanPhase('ANALYZING CORNERS & MICROSCOPIC EDGES...'), 4000);
+    setTimeout(() => setScanPhase('CHECKING SURFACE REFLECTIVITY & PRINT LINES...'), 8000);
+    setTimeout(() => setScanPhase('FETCHING LIVE MARKET DATA & PSA STANDARDS...'), 12000);
 
     setTimeout(() => {
       setIsScanning(false);
@@ -335,7 +336,7 @@ export default function Home() {
         { id: Math.random(), title: generatedReport.title, status: `${generatedReport.grade} (Scanned just now)`, time: 'Just now' },
         ...prev.slice(0, 3),
       ]);
-    }, 8500); 
+    }, 15000); // 15-second total scan time
   };
 
   const handleShare = async () => {
@@ -407,7 +408,6 @@ export default function Home() {
         <section className="lg:col-span-2 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
             
-            {/* NEW CARD IDENTIFIER SEARCH BAR */}
             <div className="mb-6 bg-slate-950 border border-slate-800 rounded-xl p-4">
               <label htmlFor="cardName" className="block text-xs font-bold text-cyan-400 uppercase tracking-wide mb-2">
                 1. Identify Your Card
@@ -493,7 +493,7 @@ export default function Home() {
                 {isScanning && (
                   <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none transition-all duration-300">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">{scanPhase}</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3 text-center px-2">{scanPhase}</span>
                   </div>
                 )}
               </div>
@@ -553,7 +553,7 @@ export default function Home() {
                 {isScanning && (
                   <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center border border-cyan-400 z-50 pointer-events-none transition-all duration-300">
                     <div className="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3">{scanPhase}</span>
+                    <span className="text-xs font-mono font-bold text-cyan-300 mt-3 text-center px-2">{scanPhase}</span>
                   </div>
                 )}
               </div>
@@ -589,7 +589,6 @@ export default function Home() {
           {report && (
             <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
               
-              {/* NEW SHARE BUTTON */}
               <button 
                 onClick={handleShare}
                 className="absolute -top-3 -right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-[10px] px-3 py-1.5 rounded-full shadow-[0_0_15px_#10b981] hover:scale-105 transition cursor-pointer uppercase tracking-widest flex items-center gap-1"
