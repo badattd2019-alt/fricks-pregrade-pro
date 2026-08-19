@@ -59,6 +59,7 @@ const initialActivity = [
 ];
 
 export default function Home() {
+  const [cardName, setCardName] = useState(''); // NEW: Card name input
   const [frontImage, setFrontImage] = useState(null);
   const [backImage, setBackImage] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -273,7 +274,6 @@ export default function Home() {
     setReport(null);
     setScanPhase('CALCULATING 60/40 RATIOS...');
 
-    // Slow down the scan and show the user what the AI is doing
     setTimeout(() => setScanPhase('INSPECTING CORNERS & EDGES...'), 2500);
     setTimeout(() => setScanPhase('CHECKING SURFACE REFLECTIVITY...'), 4500);
     setTimeout(() => setScanPhase('FETCHING LIVE MARKET DATA...'), 6500);
@@ -285,7 +285,6 @@ export default function Home() {
         setScansLeft((prev) => Math.max(0, prev - 1));
       }
 
-      // Dynamic Demo Engine: Randomly select a realistic card outcome
       const mockOutcomes = [
         {
           grade: 'GEM-MT 10', rawVal: '$120.00', gradedVal: '$1,450.00',
@@ -316,7 +315,7 @@ export default function Home() {
       const selectedOutcome = mockOutcomes[Math.floor(Math.random() * mockOutcomes.length)];
 
       const generatedReport = {
-        title: 'Uploaded Collector Card',
+        title: cardName.trim() !== '' ? cardName : 'Uploaded Collector Card',
         grade: selectedOutcome.grade,
         rawVal: selectedOutcome.rawVal,
         gradedVal: selectedOutcome.gradedVal,
@@ -336,7 +335,24 @@ export default function Home() {
         { id: Math.random(), title: generatedReport.title, status: `${generatedReport.grade} (Scanned just now)`, time: 'Just now' },
         ...prev.slice(0, 3),
       ]);
-    }, 8500); // 8.5 second scan time
+    }, 8500); 
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Pre-Grade Report for ${report?.title}`,
+          text: `My ${report?.title} just scored a ${report?.grade} on the AI Card Inspector! Estimated value: ${report?.gradedVal}. Check your cards before sending to PSA:`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log('Share dismissed or failed', err);
+      }
+    } else {
+      alert("Report link copied to clipboard! Share it with your friends.");
+      navigator.clipboard.writeText(window.location.href);
+    }
   };
 
   const redirectToStripe = () => {
@@ -390,9 +406,25 @@ export default function Home() {
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <section className="lg:col-span-2 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
+            
+            {/* NEW CARD IDENTIFIER SEARCH BAR */}
+            <div className="mb-6 bg-slate-950 border border-slate-800 rounded-xl p-4">
+              <label htmlFor="cardName" className="block text-xs font-bold text-cyan-400 uppercase tracking-wide mb-2">
+                1. Identify Your Card
+              </label>
+              <input
+                id="cardName"
+                type="text"
+                placeholder="e.g. 1999 Base Set Charizard Holo"
+                value={cardName}
+                onChange={(e) => setCardName(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition shadow-inner"
+              />
+            </div>
+
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-base md:text-lg font-bold text-slate-100">Dual-Side High Precision Scan</h2>
+                <h2 className="text-base md:text-lg font-bold text-slate-100">2. Dual-Side High Precision Scan</h2>
                 <p className="text-xs text-slate-400">Take a direct camera photo or choose from your files.</p>
               </div>
               {(frontImage || backImage) && (
@@ -555,7 +587,16 @@ export default function Home() {
           </div>
 
           {report && (
-            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
+              
+              {/* NEW SHARE BUTTON */}
+              <button 
+                onClick={handleShare}
+                className="absolute -top-3 -right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-[10px] px-3 py-1.5 rounded-full shadow-[0_0_15px_#10b981] hover:scale-105 transition cursor-pointer uppercase tracking-widest flex items-center gap-1"
+              >
+                <span>↗ Share Report</span>
+              </button>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div>
                   <span className="text-xs font-bold text-cyan-400 uppercase tracking-wide">Inspection Complete</span>
