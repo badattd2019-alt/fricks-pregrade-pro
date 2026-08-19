@@ -61,7 +61,7 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [authMode, setAuthMode] = useState('login');
   const [authError, setAuthError] = useState('');
 
   // Check Pro Status & User Auth on Load
@@ -73,7 +73,6 @@ export default function Home() {
       }
     }
 
-    // Supabase Auth Listener
     if (supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);
@@ -114,11 +113,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auth Functions
+  // Auth Handlers
   const handleAuth = async (e) => {
     e.preventDefault();
     setAuthError('');
-    
     if (!supabase) return;
 
     if (authMode === 'signup') {
@@ -279,6 +277,7 @@ export default function Home() {
     setReport(null);
     setIsListed(false);
     
+    // Strict 15-second timer
     const strictTimer = new Promise(resolve => setTimeout(resolve, 15000));
 
     setScanPhase('CALCULATING L/R & T/B CENTERING RATIOS...');
@@ -306,7 +305,7 @@ export default function Home() {
         ...prev.slice(0, 3),
       ]);
     } catch (err) {
-      console.warn('OpenAI API blocked (Billing) - Triggering Fallback Engine');
+      console.warn('OpenAI API blocked - Triggering Fallback Engine');
       const fallbackData = {
           title: cardName || 'Vintage Holo (AI Demo Mode)',
           grade: 'PSA 9 MINT',
@@ -336,7 +335,6 @@ export default function Home() {
   };
 
   const handleListClick = () => {
-    // Force Login before allowing the listing to upload
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -347,7 +345,6 @@ export default function Home() {
   const handleListToMarketplace = async () => {
     if (!report || !user) return;
 
-    // Use actual user email prefix as username for now (e.g. collector@gmail.com -> collector)
     const sellerName = user.email.split('@')[0];
 
     const newListing = {
@@ -371,6 +368,32 @@ export default function Home() {
     if (supabase) {
       const { error } = await supabase.from('marketplace_listings').insert([newListing]);
       if (error) console.error("Database upload error:", error);
+    }
+  };
+
+  // Real Stripe Escrow Checkout Handler
+  const handleBuyNow = async (card) => {
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: card.title,
+          price: card.asking_price,
+          certId: card.verified_cert,
+          image: card.image,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Stripe Checkout is ready! Connect your STRIPE_SECRET_KEY in Vercel to complete live orders.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Could not start checkout.');
     }
   };
 
@@ -405,8 +428,6 @@ export default function Home() {
         </div>
 
         <div className="flex items-center justify-between md:justify-end gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-inner">
-          
-          {/* USER AUTH BADGE */}
           {user ? (
             <div className="flex flex-col items-end mr-2 pr-4 border-r border-slate-700">
               <span className="text-[10px] text-slate-400 uppercase">Logged in as</span>
@@ -746,7 +767,7 @@ export default function Home() {
                 <span className="text-[10px] text-slate-400 block">Buy Now Price</span>
                 <span className="text-lg font-black text-emerald-400">${selectedCert.asking_price}</span>
               </div>
-              <button onClick={() => alert(`Redirecting to checkout for ${selectedCert.title}...`)} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition cursor-pointer">
+              <button onClick={() => handleBuyNow(selectedCert)} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition cursor-pointer">
                 Instant Buy with Escrow
               </button>
             </div>
@@ -788,7 +809,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* SUPABASE USER AUTH MODAL */}
+      {/* Auth Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-cyan-500/50 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
