@@ -1,0 +1,23 @@
+{
+  "name": "Fricks Pre-Grade & Verified Marketplace",
+  "short_name": "PreGrade Pro",
+  "description": "AI-powered sports and TCG optical grading inspector and marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "https://images.pokemontcg.io/pgo/11_hires.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
