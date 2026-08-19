@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase (Connects to your live database)
+// Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
@@ -86,7 +86,7 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch Live Database Listings on Load
+  // Fetch Live Database Listings
   useEffect(() => {
     async function fetchListings() {
       if (!supabase) return;
@@ -277,7 +277,7 @@ export default function Home() {
     setReport(null);
     setIsListed(false);
     
-    // Strict 15-second timer
+    // Strict 15-second minimum timer
     const strictTimer = new Promise(resolve => setTimeout(resolve, 15000));
 
     setScanPhase('CALCULATING L/R & T/B CENTERING RATIOS...');
@@ -371,7 +371,6 @@ export default function Home() {
     }
   };
 
-  // Real Stripe Escrow Checkout Handler
   const handleBuyNow = async (card) => {
     try {
       const res = await fetch('/api/checkout', {
@@ -809,7 +808,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Auth Modal */}
+      {/* Supabase User Auth Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-cyan-500/50 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
@@ -854,7 +853,7 @@ export default function Home() {
 
               <button 
                 type="submit" 
-                className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-cyan-500/20 mt-2"
+                className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-cyan-500/20 mt-2 cursor-pointer"
               >
                 {authMode === 'login' ? 'Log In' : 'Create Secure Account'}
               </button>
