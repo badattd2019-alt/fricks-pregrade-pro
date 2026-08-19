@@ -56,6 +56,15 @@ export default function Home() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
+  // User Auth State
+  const [user, setUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [authError, setAuthError] = useState('');
+
+  // Check Pro Status & User Auth on Load
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -63,8 +72,22 @@ export default function Home() {
         setIsPro(true);
       }
     }
+
+    // Supabase Auth Listener
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+
+      return () => subscription.unsubscribe();
+    }
   }, []);
 
+  // Fetch Live Database Listings on Load
   useEffect(() => {
     async function fetchListings() {
       if (!supabase) return;
@@ -78,7 +101,7 @@ export default function Home() {
       }
     }
     fetchListings();
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,6 +113,43 @@ export default function Home() {
     }, 8000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auth Functions
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    if (!supabase) return;
+
+    if (authMode === 'signup') {
+      const { error } = await supabase.auth.signUp({
+        email: authEmail,
+        password: authPassword,
+      });
+      if (error) setAuthError(error.message);
+      else {
+        setShowAuthModal(false);
+        if (report) handleListToMarketplace();
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: authPassword,
+      });
+      if (error) setAuthError(error.message);
+      else {
+        setShowAuthModal(false);
+        if (report && listPrice) handleListToMarketplace();
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      setUser(null);
+    }
+  };
 
   const openCamera = async (side) => {
     setCameraTargetSide(side);
@@ -134,7 +194,6 @@ export default function Home() {
   const handleImageUpload = (e, side) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -175,6 +234,7 @@ export default function Home() {
         <circle cx="50" cy="70" r="4.5" stroke="#00FFFF" strokeWidth="0.8" fill="none" />
         <circle cx="50" cy="70" r="1.5" fill="#00FFFF" />
         
+        {/* Top Left */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = o, cy = o; const vx = cx, vy = 26 - o; const hx = 26 - o, hy = cy;
@@ -182,6 +242,7 @@ export default function Home() {
           })}
         </g>
         
+        {/* Top Right */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = 100 - o, cy = o; const vx = cx, vy = 26 - o; const hx = 74 + o, hy = cy;
@@ -189,6 +250,7 @@ export default function Home() {
           })}
         </g>
 
+        {/* Bottom Left */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = o, cy = 140 - o; const vx = cx, vy = 114 + o; const hx = 26 - o, hy = cy;
@@ -196,6 +258,7 @@ export default function Home() {
           })}
         </g>
 
+        {/* Bottom Right */}
         <g stroke="#00FFFF" strokeWidth="0.8" fill="none" fontSize="4.2" fontFamily="sans-serif" fontWeight="900" textAnchor="middle">
           {lines.map((i) => {
             const o = i * 2; const cx = 100 - o, cy = 140 - o; const vx = cx, vy = 114 + o; const hx = 74 + o, hy = cy;
@@ -216,7 +279,6 @@ export default function Home() {
     setReport(null);
     setIsListed(false);
     
-    // Strict 15-second minimum wait timer
     const strictTimer = new Promise(resolve => setTimeout(resolve, 15000));
 
     setScanPhase('CALCULATING L/R & T/B CENTERING RATIOS...');
@@ -234,8 +296,6 @@ export default function Home() {
       if (!res.ok) throw new Error('API request failed');
 
       const data = await res.json();
-      
-      // Force app to wait until full 15 seconds is over
       await strictTimer; 
       
       setReport(data);
@@ -247,7 +307,6 @@ export default function Home() {
       ]);
     } catch (err) {
       console.warn('OpenAI API blocked (Billing) - Triggering Fallback Engine');
-      
       const fallbackData = {
           title: cardName || 'Vintage Holo (AI Demo Mode)',
           grade: 'PSA 9 MINT',
@@ -259,8 +318,6 @@ export default function Home() {
           edges: { score: '9.5' },
           surface: { score: '9.5' }
       };
-      
-      // Force app to wait until full 15 seconds is over
       await strictTimer; 
       
       setReport(fallbackData);
@@ -278,12 +335,24 @@ export default function Home() {
     }
   };
 
+  const handleListClick = () => {
+    // Force Login before allowing the listing to upload
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    handleListToMarketplace();
+  };
+
   const handleListToMarketplace = async () => {
-    if (!report) return;
+    if (!report || !user) return;
+
+    // Use actual user email prefix as username for now (e.g. collector@gmail.com -> collector)
+    const sellerName = user.email.split('@')[0];
 
     const newListing = {
       title: report.title,
-      seller: 'You (Verified Collector)',
+      seller: sellerName,
       grade: report.grade,
       centering: report.centering?.ratio || '50/50',
       corners: report.corners?.score || '9.5',
@@ -302,8 +371,6 @@ export default function Home() {
     if (supabase) {
       const { error } = await supabase.from('marketplace_listings').insert([newListing]);
       if (error) console.error("Database upload error:", error);
-    } else {
-      console.warn("Supabase not connected yet.");
     }
   };
 
@@ -338,10 +405,24 @@ export default function Home() {
         </div>
 
         <div className="flex items-center justify-between md:justify-end gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-inner">
+          
+          {/* USER AUTH BADGE */}
+          {user ? (
+            <div className="flex flex-col items-end mr-2 pr-4 border-r border-slate-700">
+              <span className="text-[10px] text-slate-400 uppercase">Logged in as</span>
+              <span className="text-xs font-bold text-cyan-400 truncate max-w-[120px]">{user.email}</span>
+              <button onClick={handleLogout} className="text-[10px] text-red-400 hover:text-red-300 mt-1 underline cursor-pointer">Sign out</button>
+            </div>
+          ) : (
+            <button onClick={() => setShowAuthModal(true)} className="mr-2 pr-4 border-r border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">
+              Log In / Sign Up
+            </button>
+          )}
+
           <div className="text-left md:text-right">
             <p className="text-xs text-slate-400">Account Status</p>
             {isPro ? (
-              <p className="text-xs font-bold text-cyan-400">PRO (Unlimited Scans)</p>
+              <p className="text-xs font-bold text-cyan-400">PRO (Unlimited)</p>
             ) : (
               <p className={`text-xs font-bold ${scansLeft === 0 ? 'text-red-400' : 'text-emerald-400'}`}>{scansLeft} / 3 Free Scans Left</p>
             )}
@@ -509,7 +590,7 @@ export default function Home() {
                       <span className="absolute left-2.5 top-2 text-xs text-slate-400 font-bold">$</span>
                       <input type="number" value={listPrice} onChange={(e) => setListPrice(e.target.value)} placeholder="Price" className="w-24 bg-slate-900 border border-slate-700 pl-6 pr-2 py-1.5 text-xs text-white rounded-lg focus:outline-none focus:border-cyan-400"/>
                     </div>
-                    <button onClick={handleListToMarketplace} disabled={isListed} className="flex-1 sm:flex-none px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer shadow-lg shadow-emerald-500/20">
+                    <button onClick={handleListClick} disabled={isListed} className="flex-1 sm:flex-none px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer shadow-lg shadow-emerald-500/20">
                       {isListed ? '✓ Listed!' : 'Publish Listing'}
                     </button>
                   </div>
@@ -604,7 +685,7 @@ export default function Home() {
                     <span className="absolute bottom-2 right-2 bg-slate-900/90 text-cyan-300 font-mono text-[9px] px-1.5 py-0.5 rounded border border-slate-700">Center: {card.centering}</span>
                   </div>
                   <h3 className="text-xs font-bold text-white line-clamp-2 leading-tight">{card.title}</h3>
-                  <p className="text-[10px] text-slate-400 mt-1">Seller: <span className="text-slate-300 font-medium">{card.seller}</span></p>
+                  <p className="text-[10px] text-slate-400 mt-1">Seller: <span className="text-slate-300 font-medium">@{card.seller}</span></p>
                 </div>
                 <div className="border-t border-slate-800 pt-3 mt-3 flex items-center justify-between">
                   <div>
@@ -706,6 +787,73 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* SUPABASE USER AUTH MODAL */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-cyan-500/50 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-base cursor-pointer">✕</button>
+            
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-black text-white">{authMode === 'login' ? 'Welcome Back' : 'Create Account'}</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {authMode === 'login' ? 'Log in to manage your vault and listings.' : 'Sign up to start selling on the marketplace.'}
+              </p>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Email Address</label>
+                <input 
+                  type="email" 
+                  required
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition"
+                  placeholder="collector@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Password</label>
+                <input 
+                  type="password" 
+                  required
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {authError && (
+                <p className="text-xs text-red-400 bg-red-950/50 border border-red-900 p-2 rounded-lg text-center">
+                  {authError}
+                </p>
+              )}
+
+              <button 
+                type="submit" 
+                className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-cyan-500/20 mt-2"
+              >
+                {authMode === 'login' ? 'Log In' : 'Create Secure Account'}
+              </button>
+            </form>
+
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                  setAuthError('');
+                }}
+                className="text-xs text-slate-400 hover:text-cyan-400 transition cursor-pointer"
+              >
+                {authMode === 'login' ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
