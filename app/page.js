@@ -263,7 +263,7 @@ export default function Home() {
     );
   };
 
-  const runScan = () => {
+  const runScan = async () => {
     if (!isPro && scansLeft <= 0) {
       setShowPaywall(true);
       return;
@@ -274,69 +274,42 @@ export default function Home() {
     setReport(null);
     setScanPhase('CALCULATING L/R & T/B CENTERING RATIOS...');
 
-    // 15-second total scan time with progressive updates
     setTimeout(() => setScanPhase('ANALYZING CORNERS & MICROSCOPIC EDGES...'), 4000);
     setTimeout(() => setScanPhase('CHECKING SURFACE REFLECTIVITY & PRINT LINES...'), 8000);
     setTimeout(() => setScanPhase('FETCHING LIVE MARKET DATA & PSA STANDARDS...'), 12000);
 
-    setTimeout(() => {
-      setIsScanning(false);
-      setScanPhase('');
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frontImage, backImage, cardName }),
+      });
+
+      if (!res.ok) throw new Error('API request failed');
+
+      const data = await res.json();
+      setReport(data);
+
       if (!isPro) {
         setScansLeft((prev) => Math.max(0, prev - 1));
       }
 
-      const mockOutcomes = [
-        {
-          grade: 'GEM-MT 10', rawVal: '$120.00', gradedVal: '$1,450.00',
-          cScore: '10.0', cMeas: 'L/R: 2.5-2.5 (50/50) | T/B: 2.5-2.5 (50/50)',
-          ratio: 'Perfect 50/50 Centering', rubric: 'PSA Standard: GEM-MT 10 (Front within 55/45 to 60/40 limit)',
-          rec: 'STRONG SUBMISSION CANDIDATE (Est. +$1,330 Value Gain)'
-        },
-        {
-          grade: 'MINT 9', rawVal: '$45.00', gradedVal: '$110.00',
-          cScore: '9.0', cMeas: 'L/R: 3.5-2.0 (64/36) | T/B: 2.5-2.0 (56/44)',
-          ratio: 'Missed 60/40 limit by 4%', rubric: 'PSA Standard: MINT 9 (Front within 60/40 to 65/35 limit)',
-          rec: 'MARGINAL SUBMISSION (Est. +$65 Value Gain)'
-        },
-        {
-          grade: 'NM-MT 8', rawVal: '$85.00', gradedVal: '$105.00',
-          cScore: '8.0', cMeas: 'L/R: 4.0-2.0 (67/33) | T/B: 3.0-2.0 (60/40)',
-          ratio: 'Noticeably heavy left border', rubric: 'PSA Standard: NM-MT 8 (Front within 65/35 to 70/30 limit)',
-          rec: 'DO NOT SUBMIT (Value gain does not cover grading fee)'
-        },
-        {
-          grade: 'GEM-MT 10', rawVal: '$45.00', gradedVal: '$280.00',
-          cScore: '10.0', cMeas: 'L/R: 3.0-2.0 (60/40) | T/B: 2.5-2.0 (56/44)',
-          ratio: 'All ratios hit the bold 60/40 threshold', rubric: 'PSA Standard: GEM-MT 10 (Front within 55/45 to 60/40 limit)',
-          rec: 'STRONG SUBMISSION CANDIDATE (Est. +$235 Value Gain)'
-        }
-      ];
-
-      const selectedOutcome = mockOutcomes[Math.floor(Math.random() * mockOutcomes.length)];
-
-      const generatedReport = {
-        title: cardName.trim() !== '' ? cardName : 'Uploaded Collector Card',
-        grade: selectedOutcome.grade,
-        rawVal: selectedOutcome.rawVal,
-        gradedVal: selectedOutcome.gradedVal,
-        centering: { 
-          score: selectedOutcome.cScore, 
-          measurements: selectedOutcome.cMeas,
-          ratio: selectedOutcome.ratio,
-          rubric: selectedOutcome.rubric 
-        },
-        corners: { score: '9.5', note: 'Minor edge friction detected' },
-        edges: { score: '9.5', note: 'Clean cuts' },
-        surface: { score: '9.5', note: 'No print lines detected' },
-        recommendation: selectedOutcome.rec,
-      };
-      setReport(generatedReport);
       setActivity((prev) => [
-        { id: Math.random(), title: generatedReport.title, status: `${generatedReport.grade} (Scanned just now)`, time: 'Just now' },
+        {
+          id: Math.random(),
+          title: data.title || 'Graded Card',
+          status: `${data.grade} (Scanned just now)`,
+          time: 'Just now',
+        },
         ...prev.slice(0, 3),
       ]);
-    }, 15000); // 15-second total scan time
+    } catch (err) {
+      console.error(err);
+      alert('Inspection failed. Please try again with a clear photo.');
+    } finally {
+      setIsScanning(false);
+      setScanPhase('');
+    }
   };
 
   const handleShare = async () => {
@@ -368,10 +341,10 @@ export default function Home() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-0.5 rounded-full uppercase">
-              AI Grading Engine v4.5
+              AI Grading Engine v5.0 (OpenAI Vision)
             </span>
             <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
-              ● PSA Ratio Rubric Active
+              ● Live API Connected
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold mt-2 text-white tracking-tight">
@@ -408,14 +381,15 @@ export default function Home() {
         <section className="lg:col-span-2 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
             
+            {/* Card Name Identifier Field */}
             <div className="mb-6 bg-slate-950 border border-slate-800 rounded-xl p-4">
               <label htmlFor="cardName" className="block text-xs font-bold text-cyan-400 uppercase tracking-wide mb-2">
-                1. Identify Your Card
+                1. Identify Card (Optional Hint)
               </label>
               <input
                 id="cardName"
                 type="text"
-                placeholder="e.g. 1999 Base Set Charizard Holo"
+                placeholder="e.g. 1999 Base Set Charizard Holo #4"
                 value={cardName}
                 onChange={(e) => setCardName(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition shadow-inner"
@@ -604,7 +578,7 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-[10px] text-slate-400">Estimated Grade</p>
-                    <p className={`text-lg font-black ${report.grade.includes('10') ? 'text-cyan-300' : report.grade.includes('9') ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    <p className={`text-lg font-black ${report.grade?.includes('10') ? 'text-cyan-300' : report.grade?.includes('9') ? 'text-emerald-400' : 'text-amber-400'}`}>
                       {report.grade}
                     </p>
                   </div>
@@ -619,9 +593,9 @@ export default function Home() {
                   </p>
                 </div>
                 <span className={`text-xs font-bold px-3 py-1.5 rounded-lg text-center ${
-                  report.grade.includes('10') 
+                  report.grade?.includes('10') 
                     ? 'text-emerald-300 bg-emerald-950/80 border border-emerald-700/50' 
-                    : report.grade.includes('9')
+                    : report.grade?.includes('9')
                     ? 'text-blue-300 bg-blue-950/80 border border-blue-700/50'
                     : 'text-amber-300 bg-amber-950/80 border border-amber-700/50'
                 }`}>
@@ -633,33 +607,33 @@ export default function Home() {
                 <div className="bg-cyan-950/30 p-3 rounded-xl border border-cyan-800/50">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[11px] text-cyan-400 font-bold uppercase tracking-wide">Centering Ratio</span>
-                    <span className="text-xs font-black text-cyan-300">{report.centering.score}</span>
+                    <span className="text-xs font-black text-cyan-300">{report.centering?.score}</span>
                   </div>
-                  <p className="text-sm font-semibold text-white">{report.centering.measurements}</p>
-                  <p className="text-xs font-medium text-cyan-300 mt-0.5">{report.centering.ratio}</p>
-                  <p className="text-[10px] text-cyan-500/80 mt-1 italic">{report.centering.rubric}</p>
+                  <p className="text-sm font-semibold text-white">{report.centering?.measurements}</p>
+                  <p className="text-xs font-medium text-cyan-300 mt-0.5">{report.centering?.ratio}</p>
+                  <p className="text-[10px] text-cyan-500/80 mt-1 italic">{report.centering?.rubric}</p>
                 </div>
 
                 <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-slate-400 font-medium">Corners</span>
-                    <span className="text-xs font-bold text-slate-300">{report.corners.score}</span>
+                    <span className="text-xs font-bold text-slate-300">{report.corners?.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{report.corners.note}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{report.corners?.note}</p>
                 </div>
                 <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-slate-400 font-medium">Edges</span>
-                    <span className="text-xs font-bold text-slate-300">{report.edges.score}</span>
+                    <span className="text-xs font-bold text-slate-300">{report.edges?.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{report.edges.note}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{report.edges?.note}</p>
                 </div>
                 <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-slate-400 font-medium">Surface</span>
-                    <span className="text-xs font-bold text-slate-300">{report.surface.score}</span>
+                    <span className="text-xs font-bold text-slate-300">{report.surface?.score}</span>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{report.surface.note}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{report.surface?.note}</p>
                 </div>
               </div>
             </div>
