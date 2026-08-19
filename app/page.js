@@ -12,6 +12,13 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 
 const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/dRmaEX9av3fu7Yb8Y07kc01';
 
+const highGrades = [
+  { id: 1, title: '2022 Pokemon Go Radiant Venusaur #004', company: 'PSA', grade: '10 GM', estValue: '$120', image: 'https://images.pokemontcg.io/pgo/4_hires.png' },
+  { id: 2, title: '2022 Pokemon Go Radiant Blastoise #018', company: 'PSA', grade: '9.5 MT', estValue: '$95', image: 'https://images.pokemontcg.io/pgo/18_hires.png' },
+  { id: 3, title: '1999 Base Mewtwo #10', company: 'PSA', grade: '9 GM', estValue: '$340', image: 'https://images.pokemontcg.io/base1/10_hires.png' },
+  { id: 4, title: '2022 Pokemon Go Radiant Charizard #011', company: 'PSA', grade: '10 GM', estValue: '$210', image: 'https://images.pokemontcg.io/pgo/11_hires.png' },
+];
+
 const mockCommunityPool = [
   { title: '2000 Neo Genesis Lugia 1st Edition #9', status: 'PSA 10 (Est. +$1,450 ROI)' },
   { title: '2021 Evolving Skies Umbreon VMAX #215', status: 'PSA 9.5 MT (Est. +$420 ROI)' },
@@ -159,7 +166,6 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // RESTORED FULL CROSSHAIR OVERLAY
   const ExactDigitalCenteringTool = () => {
     const lines = [1, 2, 3, 4, 5];
     return (
@@ -238,7 +244,6 @@ export default function Home() {
     } catch (err) {
       console.warn('OpenAI API blocked (Billing) - Triggering Fallback Engine');
       
-      // Fallback Engine: Prevents the app from crashing if OpenAI fails
       const fallbackData = {
           title: cardName || 'Vintage Holo (AI Demo Mode)',
           grade: 'PSA 9 MINT',
@@ -540,6 +545,26 @@ export default function Home() {
                     <div className="flex justify-between text-[11px] mt-0.5">
                       <span className="text-emerald-400 font-medium">{item.status}</span><span className="text-slate-500">{item.time}</span>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* RESTORED HIGH GRADES WIDGET WITH PICTURES */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+              <h3 className="text-sm font-bold text-slate-200 mb-3">Verified High Grades</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {highGrades.map((card) => (
+                  <div key={card.id} className="bg-slate-950 border border-slate-800/90 rounded-xl p-2.5 flex flex-col justify-between hover:border-slate-700 transition">
+                    <div className="w-full flex justify-between items-center text-[10px] font-bold mb-1.5">
+                      <span className="text-red-500">{card.company}</span>
+                      <span className="bg-cyan-500 text-slate-950 px-1.5 py-0.5 rounded font-black">{card.grade}</span>
+                    </div>
+                    <div className="w-full h-28 flex items-center justify-center overflow-hidden rounded bg-slate-900/60 my-1">
+                      <img src={card.image} alt={card.title} className="max-h-full max-w-full object-contain" />
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-300 leading-tight truncate mt-1">{card.title}</p>
+                    <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Est. {card.estValue}</p>
                   </div>
                 ))}
               </div>
