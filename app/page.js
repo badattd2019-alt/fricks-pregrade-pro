@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useRef } from 'react';
 
 // Live $9.99/mo Stripe Payment Link
