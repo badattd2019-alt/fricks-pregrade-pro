@@ -88,6 +88,7 @@ export default function Home() {
 
   const [sellModalOpen, setSellModalOpen] = useState(false);
   const [salePrice, setSalePrice] = useState('');
+  const [previewCard, setPreviewCard] = useState(null); // Fullscreen Lightbox Zoom
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -105,7 +106,6 @@ export default function Home() {
     }
   }, []);
 
-  // Live Community Scans rotation loop
   useEffect(() => {
     const interval = setInterval(() => {
       const randomCard = mockCommunityPool[Math.floor(Math.random() * mockCommunityPool.length)];
@@ -151,7 +151,7 @@ export default function Home() {
     setCameraActive(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false,
       });
       streamRef.current = stream;
@@ -163,15 +163,36 @@ export default function Home() {
     }
   };
 
+  // TIGHT CENTER CROPPING: Zooms straight into the rectangular card guide
   const capturePhoto = () => {
     if (!videoRef.current) return;
+    const v = videoRef.current;
+    const videoW = v.videoWidth || 1280;
+    const videoH = v.videoHeight || 720;
+
+    // Crop box matching standard card aspect ratio (63:88)
+    const targetAspect = 63 / 88;
+    let cropW, cropH;
+
+    if (videoW / videoH > targetAspect) {
+      cropH = videoH * 0.85;
+      cropW = cropH * targetAspect;
+    } else {
+      cropW = videoW * 0.85;
+      cropH = cropW / targetAspect;
+    }
+
+    const startX = (videoW - cropW) / 2;
+    const startY = (videoH - cropH) / 2;
+
     const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 840;
+    canvas.width = 630;
+    canvas.height = 880;
     const ctx = canvas.getContext('2d');
+
     if (ctx) {
-      ctx.drawImage(videoRef.current, 0, 0, 600, 840);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      ctx.drawImage(v, startX, startY, cropW, cropH, 0, 0, 630, 880);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
       if (cameraTargetSide === 'front') setFrontImage(dataUrl);
       if (cameraTargetSide === 'back') setBackImage(dataUrl);
     }
@@ -194,12 +215,12 @@ export default function Home() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = 600;
-        canvas.height = 840;
+        canvas.width = 630;
+        canvas.height = 880;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(img, 0, 0, 600, 840);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          ctx.drawImage(img, 0, 0, 630, 880);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
           if (side === 'front') setFrontImage(compressedDataUrl);
           if (side === 'back') setBackImage(compressedDataUrl);
         }
@@ -289,7 +310,7 @@ export default function Home() {
     );
   };
 
-  // FULL 15-SECOND AUTHENTIC INSPECTION + FINANCIAL PREDICTION
+  // FULL 15-SECOND AUTHENTIC INSPECTION
   const runScan = async () => {
     if (!isPro && scansLeft <= 0) {
       setShowPaywall(true);
@@ -319,7 +340,7 @@ export default function Home() {
 
     const p4 = setTimeout(() => {
       setScanPercent(95);
-      setScanPhase('5/5: QUERYING REAL-TIME PSA SALES PRICING & MARKET PREDICTIONS...');
+      setScanPhase('5/5: QUERYING REAL-TIME PSA POPULATION & SALES PRICING...');
     }, 12500);
 
     const fallbackResult = {
@@ -391,7 +412,6 @@ export default function Home() {
       setScansLeft((prev) => Math.max(0, prev - 1));
     }
 
-    // Add this new scan immediately to the Live Community Scans feed
     setActivity((prev) => [
       {
         id: Math.random(),
@@ -439,7 +459,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-10 font-sans selection:bg-blue-500 selection:text-white relative">
-      {/* HEADER WITH AUTH & TAB CONTROLS */}
+      {/* HEADER */}
       <header className="max-w-6xl mx-auto border-b border-slate-800 pb-6 mb-8 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -567,16 +587,15 @@ export default function Home() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {/* FRONT SIDE */}
-                <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
+                <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[340px] flex flex-col items-center justify-center overflow-hidden">
                   <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                     FRONT SIDE
                   </span>
 
                   {frontImage ? (
-                    <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
-                      <img src={frontImage} alt="Front preview" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" />
-                      <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
-                        <img src={frontImage} alt="Front clear" className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="relative w-full h-[320px] flex items-center justify-center rounded-xl overflow-hidden bg-slate-950">
+                      <div className="relative z-10 w-full h-full max-h-[300px] aspect-[63/88] rounded-lg border-2 border-cyan-400 overflow-hidden shadow-2xl flex items-center justify-center">
+                        <img src={frontImage} alt="Front clear close-up" className="w-full h-full object-cover" />
                         <ExactDigitalCenteringTool />
                       </div>
                       <button
@@ -585,7 +604,7 @@ export default function Home() {
                           setFrontImage(null);
                           setReport(null);
                         }}
-                        className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                        className="absolute top-2 right-2 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                       >
                         ✕
                       </button>
@@ -609,7 +628,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* 15-SECOND LIVE SCAN DIAGNOSTIC OVERLAY */}
                   {isScanning && (
                     <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-4 border-2 border-cyan-400 z-50 pointer-events-none transition-all duration-300">
                       <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
@@ -630,16 +648,15 @@ export default function Home() {
                 </div>
 
                 {/* BACK SIDE */}
-                <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-4 min-h-[300px] flex flex-col items-center justify-center overflow-hidden">
+                <div className="relative border-2 border-dashed border-slate-700 bg-slate-950 rounded-xl p-3 min-h-[340px] flex flex-col items-center justify-center overflow-hidden">
                   <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                     BACK SIDE
                   </span>
 
                   {backImage ? (
-                    <div className="relative w-full h-[260px] flex items-center justify-center rounded-xl overflow-hidden">
-                      <img src={backImage} alt="Back preview" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 blur-[1px]" />
-                      <div className="relative z-10 w-[55%] max-w-[180px] aspect-[63/88] rounded shadow-[0_0_0_999px_rgba(0,0,0,0.6)] border border-cyan-400 overflow-hidden">
-                        <img src={backImage} alt="Back clear" className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="relative w-full h-[320px] flex items-center justify-center rounded-xl overflow-hidden bg-slate-950">
+                      <div className="relative z-10 w-full h-full max-h-[300px] aspect-[63/88] rounded-lg border-2 border-cyan-400 overflow-hidden shadow-2xl flex items-center justify-center">
+                        <img src={backImage} alt="Back clear close-up" className="w-full h-full object-cover" />
                         <ExactDigitalCenteringTool />
                       </div>
                       <button
@@ -648,7 +665,7 @@ export default function Home() {
                           setBackImage(null);
                           setReport(null);
                         }}
-                        className="absolute top-1 right-1 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
+                        className="absolute top-2 right-2 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg cursor-pointer"
                       >
                         ✕
                       </button>
@@ -672,7 +689,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* BACK SIDE LIVE SCAN OVERLAY */}
                   {isScanning && (
                     <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-4 border-2 border-cyan-400 z-50 pointer-events-none transition-all duration-300">
                       <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
@@ -722,6 +738,7 @@ export default function Home() {
               )}
             </div>
 
+            {/* INSPECTION REPORT CARD WITH CLOSE-UP PHOTOS */}
             {report && (
               <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
@@ -735,6 +752,26 @@ export default function Home() {
                     <p className="text-[10px] text-slate-400">Estimated Grade</p>
                     <p className="text-lg font-black text-cyan-300">{report.grade}</p>
                   </div>
+                </div>
+
+                {/* LARGE CLOSE-UP CARD PREVIEW INSIDE REPORT */}
+                <div className="grid grid-cols-2 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  {frontImage && (
+                    <div className="flex flex-col items-center">
+                      <span className="text-[10px] font-bold text-slate-400 mb-1">FRONT CLOSE-UP</span>
+                      <div className="w-full h-52 flex items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+                        <img src={frontImage} alt="Front" className="w-full h-full object-cover cursor-pointer hover:scale-105 transition" onClick={() => setPreviewCard({ image: frontImage, title: report.title + ' (Front)' })} />
+                      </div>
+                    </div>
+                  )}
+                  {backImage && (
+                    <div className="flex flex-col items-center">
+                      <span className="text-[10px] font-bold text-slate-400 mb-1">BACK CLOSE-UP</span>
+                      <div className="w-full h-52 flex items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+                        <img src={backImage} alt="Back" className="w-full h-full object-cover cursor-pointer hover:scale-105 transition" onClick={() => setPreviewCard({ image: backImage, title: report.title + ' (Back)' })} />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* THE FINANCIAL PREDICTION LINE */}
@@ -844,7 +881,7 @@ export default function Home() {
 
           {/* SIDEBAR: LIVE COMMUNITY SCANS & VERIFIED HIGH GRADES */}
           <aside className="space-y-6">
-            {/* LIVE COMMUNITY SCANS (Simulated Live Activity with green pulse) */}
+            {/* LIVE COMMUNITY SCANS */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-slate-200">Live Community Scans</h3>
@@ -869,7 +906,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* VERIFIED HIGH GRADES GALLERY */}
+            {/* VERIFIED HIGH GRADES GALLERY (CLOSE-UP VIEWS) */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-slate-200">Verified High Grades</h3>
@@ -877,11 +914,12 @@ export default function Home() {
                   Live Feed
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 max-h-[520px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
                 {scannedGallery.map((card) => (
                   <div
                     key={card.id}
-                    className="bg-slate-950 border border-slate-800/90 rounded-xl p-2.5 flex flex-col justify-between hover:border-cyan-500/50 transition"
+                    className="bg-slate-950 border border-slate-800/90 rounded-xl p-2.5 flex flex-col justify-between hover:border-cyan-500/50 transition cursor-pointer"
+                    onClick={() => setPreviewCard(card)}
                   >
                     <div className="w-full flex justify-between items-center text-[10px] font-bold mb-1.5">
                       <span className="text-red-500 font-black">{card.company}</span>
@@ -889,8 +927,8 @@ export default function Home() {
                         {card.grade}
                       </span>
                     </div>
-                    <div className="w-full h-28 flex items-center justify-center overflow-hidden rounded bg-slate-900/60 my-1">
-                      <img src={card.image} alt={card.title} className="max-h-full max-w-full object-contain" />
+                    <div className="w-full h-44 flex items-center justify-center overflow-hidden rounded-lg bg-slate-900/90 my-1 p-0.5">
+                      <img src={card.image} alt={card.title} className="w-full h-full object-cover hover:scale-105 transition duration-300 rounded" />
                     </div>
                     <p className="text-[11px] font-semibold text-slate-300 truncate mt-1">{card.title}</p>
                     <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Est. {card.estValue}</p>
@@ -902,7 +940,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* VIEW 2: MARKETPLACE STORE */}
+      {/* VIEW 2: MARKETPLACE STORE (PROMINENT CLOSE-UP DISPLAY) */}
       {activeTab === 'marketplace' && (
         <main className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
@@ -920,8 +958,11 @@ export default function Home() {
                     <span className="text-red-500">{item.company}</span>
                     <span className="bg-cyan-500 text-slate-950 px-2 py-0.5 rounded font-black text-[11px]">{item.grade}</span>
                   </div>
-                  <div className="w-full h-44 bg-slate-950 rounded-xl flex items-center justify-center p-2 overflow-hidden mb-3">
-                    <img src={item.image} alt={item.title} className="max-h-full max-w-full object-contain" />
+                  <div
+                    className="w-full h-64 bg-slate-950 rounded-xl flex items-center justify-center p-1 overflow-hidden mb-3 border border-slate-800 cursor-pointer group"
+                    onClick={() => setPreviewCard(item)}
+                  >
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-300" />
                   </div>
                   <h4 className="text-sm font-bold text-white truncate">{item.title}</h4>
                   <p className="text-xs text-slate-400 mt-0.5">Seller: <span className="text-cyan-400">@{item.seller || 'Verified'}</span></p>
@@ -977,7 +1018,7 @@ export default function Home() {
                 {myListings.map((card) => (
                   <div key={card.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                      <img src={card.image} alt={card.title} className="w-12 h-16 object-contain rounded bg-slate-900" />
+                      <img src={card.image} alt={card.title} className="w-14 h-20 object-cover rounded-lg bg-slate-900 border border-slate-700" />
                       <div>
                         <p className="text-xs font-bold text-white truncate max-w-[150px]">{card.title}</p>
                         <p className="text-xs text-cyan-400">{card.grade} • <span className="text-emerald-400">{card.estValue}</span></p>
@@ -1000,6 +1041,23 @@ export default function Home() {
         </main>
       )}
 
+      {/* FULLSCREEN CARD ZOOM LIGHTBOX */}
+      {previewCard && (
+        <div
+          className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4"
+          onClick={() => setPreviewCard(null)}
+        >
+          <div className="max-w-md w-full flex justify-between items-center text-white mb-3">
+            <h3 className="text-sm font-bold text-cyan-400 truncate">{previewCard.title}</h3>
+            <button className="text-slate-400 hover:text-white text-lg">✕</button>
+          </div>
+          <div className="relative max-w-sm w-full h-[70vh] bg-slate-900 border-2 border-cyan-400 rounded-2xl overflow-hidden shadow-2xl p-2 flex items-center justify-center">
+            <img src={previewCard.image} alt={previewCard.title} className="w-full h-full object-contain rounded-xl" />
+          </div>
+          <p className="text-xs text-slate-400 mt-3">Tap anywhere to close preview</p>
+        </div>
+      )}
+
       {/* LIVE CAMERA VIEWFINDER MODAL */}
       {cameraActive && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between p-4">
@@ -1014,7 +1072,7 @@ export default function Home() {
           <div className="relative w-full max-w-md h-[70vh] bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center">
             <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover z-10" />
             <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden">
-              <div className="relative w-[80%] max-w-[300px] aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.7)] border-2 border-cyan-400 flex items-center justify-center">
+              <div className="relative w-[85%] max-w-[320px] aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.75)] border-2 border-cyan-400 flex items-center justify-center">
                 <ExactDigitalCenteringTool />
               </div>
             </div>
@@ -1087,7 +1145,7 @@ export default function Home() {
           <div className="bg-slate-900 border border-slate-700 max-w-md w-full rounded-2xl p-6 shadow-2xl relative">
             <button onClick={() => setSellModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">✕</button>
             <h3 className="text-lg font-bold text-white mb-1">List Card for Sale</h3>
-            <p className="text-xs text-slate-400 mb-4">Your AI sub-grades and photo will be listed under @{user?.username}.</p>
+            <p className="text-xs text-slate-400 mb-4">Your AI sub-grades and close-up photo will be listed under @{user?.username}.</p>
             <form onSubmit={handlePublishListing} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Asking Price ($ USD)</label>
