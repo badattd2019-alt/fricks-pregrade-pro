@@ -9,12 +9,19 @@ import {
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null;
+// Safe Database Initialization - Prevents Vercel Build Crashing
+let supabase = null;
+if (typeof window !== 'undefined') {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  if (supabaseUrl.startsWith('http') && supabaseAnonKey) {
+    try {
+      supabase = createClient(supabaseUrl, supabaseAnonKey);
+    } catch (error) {
+      console.warn('Database connection skipped during build');
+    }
+  }
+}
 
 // Initial marketplace listings
 const INITIAL_LISTINGS = [
@@ -29,7 +36,9 @@ const INITIAL_LISTINGS = [
     price: '4850.00',
     seller: 'VaultKing_Cards',
     image: 'https://images.unsplash.com/photo-1613778307455-87779b5c3e66?w=600&auto=format&fit=crop&q=80',
-    verified: true
+    verified: true,
+    category: 'Football',
+    createdAt: '2026-03-15'
   },
   {
     id: 'FRICK-49102',
@@ -42,7 +51,9 @@ const INITIAL_LISTINGS = [
     price: '9200.00',
     seller: 'ChicagoDynasty',
     image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80',
-    verified: true
+    verified: true,
+    category: 'Basketball',
+    createdAt: '2026-03-18'
   },
   {
     id: 'FRICK-10928',
@@ -55,7 +66,9 @@ const INITIAL_LISTINGS = [
     price: '3400.00',
     seller: 'GemMintCollector',
     image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=80',
-    verified: true
+    verified: true,
+    category: 'Basketball',
+    createdAt: '2026-03-20'
   }
 ];
 
@@ -183,10 +196,10 @@ export default function Home() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(`Checkout initiated for ${item.title} ($${item.price}).`);
+        alert(`Checkout initiated for ${item.title} ($${item.price}). Add STRIPE_SECRET_KEY in Vercel to activate live card processing.`);
       }
     } catch (err) {
-      alert(`Stripe integration ready.`);
+      alert(`Stripe integration ready. Add STRIPE_SECRET_KEY in Vercel settings.`);
     } finally {
       setIsCheckingOut(false);
     }
@@ -209,7 +222,7 @@ export default function Home() {
         surface: match.surface,
         verified: true,
         hash: '0x8f2d...9a12c4',
-        date: '2026-03-15'
+        date: match.createdAt
       });
     } else {
       setVaultRecord({
@@ -657,7 +670,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-neutral-900 py-6 text-center text-xs text-neutral-600">
-        © 2026 Fricks Pre-Grade Pro. All Rights Reserved.
+        © 2026 Fricks Pre-Grade Pro. All Rights Reserved. Protected by Stripe Escrow & AI Card Vault.
       </footer>
     </div>
   );
