@@ -16,7 +16,7 @@ const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
-// Initial marketplace listings
+// Hardcoded initial marketplace listings
 const INITIAL_LISTINGS = [
   {
     id: 'FRICK-88412',
