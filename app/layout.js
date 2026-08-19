@@ -1,15 +1,9 @@
 import './globals.css';
 
 export const metadata = {
-  title: "Fricks Pre-Grade Pro",
-  description: "AI Sports & TCG Card Inspector",
-  manifest: "/manifest.json",
-  themeColor: "#020617",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "PreGrade Pro",
-  },
+  title: 'Fricks Pre-Grade Pro',
+  description: 'AI Sports & TCG Card Grading Inspector & Marketplace',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }) {
@@ -18,10 +12,23 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#020617" />
-        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
-      <body className="bg-slate-950 text-slate-100 antialiased min-h-screen">
+      <body>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then(function(reg) { console.log('PWA Service Worker registered:', reg.scope); })
+                    .catch(function(err) { console.log('PWA SW registration failed:', err); });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
