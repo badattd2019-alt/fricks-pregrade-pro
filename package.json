@@ -9,19 +9,20 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "latest",
+    "lucide-react": "latest",
+    "next": "14.2.35",
+    "next-pwa": "^5.6.0",
+    "openai": "latest",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.35",
-    "lucide-react": "latest",
-    "openai": "latest",
-    "@supabase/supabase-js": "latest",
     "stripe": "latest"
   },
   "devDependencies": {
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
     "autoprefixer": "latest",
     "eslint": "^8",
-    "eslint-config-next": "14.2.35"
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1"
   }
 }

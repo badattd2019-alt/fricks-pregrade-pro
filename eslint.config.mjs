@@ -1,16 +1,15 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
+import withPWAInit from 'next-pwa';
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development', // Only runs on the live Vercel site
+  register: true,
+  skipWaiting: true,
+});
 
-export default eslintConfig;
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Your existing Next.js config (if any) goes here
+};
+
+export default withPWA(nextConfig);
