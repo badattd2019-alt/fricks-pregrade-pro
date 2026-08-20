@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Webcam from 'react-webcam';
 
 const INITIAL_CARDS = [
   {
@@ -62,6 +63,11 @@ export default function Home() {
   const [frontImage, setFrontImage] = useState(null);
   const [backImage, setBackImage] = useState(null);
 
+  // Live Webcam state
+  const [activeCameraSide, setActiveCameraSide] = useState(null);
+  const webcamRef = useRef(null);
+
+  // Modal State for Cards
   const [editingCard, setEditingCard] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,8 +79,13 @@ export default function Home() {
     status: 'for_sale',
   });
 
-  const frontInputRef = useRef(null);
-  const backInputRef = useRef(null);
+  // Dedicated Native Camera Inputs (Direct Shutter)
+  const frontCameraInputRef = useRef(null);
+  const backCameraInputRef = useRef(null);
+
+  // Dedicated Gallery Inputs (Photo Picker)
+  const frontGalleryInputRef = useRef(null);
+  const backGalleryInputRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('fricks_inventory');
@@ -98,6 +109,15 @@ export default function Home() {
       const url = URL.createObjectURL(file);
       if (side === 'front') setFrontImage(url);
       if (side === 'back') setBackImage(url);
+    }
+  };
+
+  const captureWebcam = () => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (activeCameraSide === 'front') setFrontImage(imageSrc);
+      if (activeCameraSide === 'back') setBackImage(imageSrc);
+      setActiveCameraSide(null);
     }
   };
 
@@ -150,8 +170,39 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#060b13] text-slate-100 p-4 md:p-8 lg:p-10 font-sans antialiased selection:bg-cyan-500 selection:text-white">
-      <input type="file" ref={frontInputRef} onChange={(e) => handleFileUpload(e, 'front')} accept="image/*" className="hidden" />
-      <input type="file" ref={backInputRef} onChange={(e) => handleFileUpload(e, 'back')} accept="image/*" className="hidden" />
+      {/* DIRECT CAMERA INPUTS (Opens device camera directly) */}
+      <input
+        type="file"
+        ref={frontCameraInputRef}
+        onChange={(e) => handleFileUpload(e, 'front')}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={backCameraInputRef}
+        onChange={(e) => handleFileUpload(e, 'back')}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+
+      {/* GALLERY / FILE PICKER INPUTS */}
+      <input
+        type="file"
+        ref={frontGalleryInputRef}
+        onChange={(e) => handleFileUpload(e, 'front')}
+        accept="image/*"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={backGalleryInputRef}
+        onChange={(e) => handleFileUpload(e, 'back')}
+        accept="image/*"
+        className="hidden"
+      />
 
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -164,11 +215,11 @@ export default function Home() {
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Live Marketplace &amp; Inventory Active
+                Live Scanner &amp; Marketplace Active
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Fricks Pre-Grade &amp; Verified Marketplace
+              [Fricks Pre-Grade &amp; Verified Marketplace](https://fricks-pregrade-pro.vercel.app/)
             </h1>
           </div>
 
@@ -247,6 +298,7 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Front Side */}
                     <div className="flex flex-col justify-between border-2 border-dashed border-slate-800 hover:border-slate-700 rounded-xl p-4 bg-slate-950/40 text-center min-h-[220px]">
                       <span className="text-[10px] font-black tracking-widest text-slate-500">FRONT SIDE</span>
                       {frontImage ? (
@@ -260,15 +312,22 @@ export default function Home() {
                         </div>
                       )}
                       <div className="space-y-2 mt-2">
-                        <button onClick={() => frontInputRef.current?.click()} className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow transition-colors">
+                        <button
+                          onClick={() => frontCameraInputRef.current?.click()}
+                          className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center justify-center gap-1.5"
+                        >
                           📷 Open Camera
                         </button>
-                        <button onClick={() => frontInputRef.current?.click()} className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors">
+                        <button
+                          onClick={() => frontGalleryInputRef.current?.click()}
+                          className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                        >
                           📁 Photos / Files
                         </button>
                       </div>
                     </div>
 
+                    {/* Back Side */}
                     <div className="flex flex-col justify-between border-2 border-dashed border-slate-800 hover:border-slate-700 rounded-xl p-4 bg-slate-950/40 text-center min-h-[220px]">
                       <span className="text-[10px] font-black tracking-widest text-slate-500">BACK SIDE</span>
                       {backImage ? (
@@ -282,10 +341,16 @@ export default function Home() {
                         </div>
                       )}
                       <div className="space-y-2 mt-2">
-                        <button onClick={() => backInputRef.current?.click()} className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow transition-colors">
+                        <button
+                          onClick={() => backCameraInputRef.current?.click()}
+                          className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center justify-center gap-1.5"
+                        >
                           📷 Open Camera
                         </button>
-                        <button onClick={() => backInputRef.current?.click()} className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors">
+                        <button
+                          onClick={() => backGalleryInputRef.current?.click()}
+                          className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                        >
                           📁 Photos / Files
                         </button>
                       </div>
@@ -301,6 +366,7 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* SAVINGS CALCULATOR */}
               <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
                 <div>
                   <h3 className="text-base font-bold text-white">Submission Fee Savings Calculator</h3>
@@ -334,6 +400,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* COMMUNITY FEED */}
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -459,6 +526,40 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* WEBCAM MODAL */}
+      {activeCameraSide && (
+        <div className="fixed inset-0 bg-black/85 z-50 flex flex-col items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 flex flex-col items-center p-4 space-y-4">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              Scan Card {activeCameraSide}
+            </h3>
+            <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-black border border-slate-800">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{ facingMode: 'environment' }}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setActiveCameraSide(null)}
+                className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={captureWebcam}
+                className="w-1/2 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg text-xs font-extrabold"
+              >
+                Capture Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* EDIT / CREATE CARD MODAL */}
       {(editingCard || isAddModalOpen) && (
