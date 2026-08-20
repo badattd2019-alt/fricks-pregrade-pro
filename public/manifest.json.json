@@ -1,8 +1,20 @@
-"icons": [
+{
+  "name": "Fricks Pre-Grade Pro",
+  "short_name": "Fricks Pro",
+  "description": "AI Card Scanner and Verified Marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#06b6d4",
+  "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
+<<<<<<< HEAD:public/manifest.json.json
+      "type": "image/jpng"
+=======
       "type": "image/png"
+>>>>>>> 3e1c682d8b2ab1ad90a8f9747ebb285706ad46a1:public/pwa-manifest.json
     },
     {
       "src": "/icon-512.png",
@@ -10,3 +22,4 @@
       "type": "image/png"
     }
   ]
+}
