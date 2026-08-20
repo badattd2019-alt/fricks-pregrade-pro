@@ -1,4 +1,4 @@
-export const metadata = {
+export const dynamic = "force-dynamic";
   title: "Fricks Pre-Grade Pro",
   description: "AI Card Scanner and Verified Marketplace",
   manifest: "/manifest.json",
