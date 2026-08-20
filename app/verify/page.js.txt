@@ -1,0 +1,16 @@
+import PsaScanner from '../../components/PsaScanner';
+
+export default function VerifyPage() {
+  return (
+    <main className="min-h-screen p-6 max-w-4xl mx-auto">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold mb-2">Slab Verification Engine</h1>
+        <p className="text-gray-600">Scan a PSA barcode to verify authenticity and current market data.</p>
+      </div>
+      
+      {/* This loads the camera scanner box you created earlier */}
+      <PsaScanner />
+      
+    </main>
+  );
+}

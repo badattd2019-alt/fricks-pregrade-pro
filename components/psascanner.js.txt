@@ -1,0 +1,58 @@
+"use client";
+import { useEffect, useState } from "react";
+import { Html5QrcodeScanner } from "html5-qrcode";
+
+export default function PsaScanner() {
+  const [scanResult, setScanResult] = useState(null);
+  const [cardData, setCardData] = useState(null);
+
+  useEffect(() => {
+    const scanner = new Html5QrcodeScanner("reader", {
+      qrbox: { width: 250, height: 100 }, // Rectangle for barcodes
+      fps: 5,
+    });
+
+    scanner.render(async (result) => {
+      scanner.clear();
+      setScanResult(result);
+      
+      // Send the scanned number to your secure API
+      const res = await fetch("/api/verify-psa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ certNumber: result }),
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setCardData(data.data);
+      }
+    }, (error) => {
+      // Ignore routine scan errors
+    });
+
+    return () => scanner.clear();
+  }, []);
+
+  return (
+    <div className="p-4 border rounded-lg shadow-sm max-w-md mx-auto mt-4">
+      <h3 className="text-xl font-bold mb-4">Verify PSA Slab</h3>
+      {!scanResult ? (
+        <div id="reader"></div>
+      ) : (
+        <div className="text-center">
+          <p className="text-green-600 font-bold mb-2">Scan Successful: {scanResult}</p>
+          {cardData ? (
+            <div className="bg-gray-100 p-4 rounded text-left">
+              <p><strong>Grade:</strong> {cardData.grade}</p>
+              <p><strong>Details:</strong> {cardData.description}</p>
+              <button onClick={() => setScanResult(null)} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded w-full">Scan Another</button>
+            </div>
+          ) : (
+            <p>Looking up certificate...</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

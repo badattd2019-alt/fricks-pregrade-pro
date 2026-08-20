@@ -1,7 +1,10 @@
-'use client';
+
+import Link from "next/link";
 export const dynamic = "force-dynamic";
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import PsaScanner from '../components/PsaScanner';
+import Link from "next/link";'use client';
 
 // Initialize Supabase Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
