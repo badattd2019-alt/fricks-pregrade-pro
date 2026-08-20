@@ -93,7 +93,6 @@ export default function Home() {
 
   const [previewCard, setPreviewCard] = useState(null);
 
-  // Fullscreen Lightbox Zoom
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -167,7 +166,6 @@ export default function Home() {
     }
   };
 
-  // TIGHT CENTER CROPPING: Zooms straight into the rectangular card guide
   const capturePhoto = () => {
     if (!videoRef.current) return;
     const v = videoRef.current;
@@ -175,7 +173,6 @@ export default function Home() {
     const videoW = v.videoWidth || 1280;
     const videoH = v.videoHeight || 720;
 
-    // Crop box matching standard card aspect ratio (63:88)
     const targetAspect = 63 / 88;
     let cropW, cropH;
 
@@ -238,7 +235,6 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // Optical Centering Overlay
   const ExactDigitalCenteringTool = () => {
     const lines = [1, 2, 3, 4, 5];
     return (
@@ -316,7 +312,6 @@ export default function Home() {
     );
   };
 
-  // FULL 15-SECOND AUTHENTIC INSPECTION
   const runScan = async () => {
     if (!isPro && scansLeft <= 0) {
       setShowPaywall(true);
@@ -425,10 +420,6 @@ export default function Home() {
   const handlePublishListing = (e) => {
     e.preventDefault();
     if (!salePrice) return;
-    if (!user) {
-      setAuthModalOpen(true);
-      return;
-    }
 
     const customCard = {
       id: Date.now(),
@@ -437,13 +428,13 @@ export default function Home() {
       grade: report?.grade || '10 GM',
       estValue: `$${parseFloat(salePrice).toFixed(2)}`,
       image: frontImage || backImage || 'https://images.pokemontcg.io/pgo/11_hires.png',
-      seller: user.username,
+      seller: user?.username || 'VerifiedSeller',
     };
 
     setScannedGallery((prev) => [customCard, ...prev]);
     setSellModalOpen(false);
     setSalePrice('');
-    alert(`Success! Card listed for $${parseFloat(salePrice).toFixed(2)} under @${user.username}.`);
+    alert(`Success! Card listed for $${parseFloat(salePrice).toFixed(2)} in Marketplace.`);
   };
 
   const handleBuyCard = (card) => {
@@ -456,7 +447,7 @@ export default function Home() {
   };
 
   const estimatedSavings = Math.round(monthlyCards * 0.4 * 25);
-  const myListings = scannedGallery.filter((card) => user && card.seller === user.username);
+  const myListings = user ? scannedGallery.filter((card) => card.seller === user.username) : scannedGallery;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-10 font-sans selection:bg-blue-500 selection:text-white relative">
@@ -529,21 +520,15 @@ export default function Home() {
               activeTab === 'marketplace' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            🏪 Marketplace Store
+            🏪 Marketplace Store ({scannedGallery.length})
           </button>
           <button
-            onClick={() => {
-              if (!user) {
-                setAuthModalOpen(true);
-                return;
-              }
-              setActiveTab('my-listings');
-            }}
+            onClick={() => setActiveTab('my-listings')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'my-listings' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            📦 My Seller Inventory {user && `(${myListings.length})`}
+            📦 My Seller Inventory ({myListings.length})
           </button>
         </nav>
       </header>
@@ -753,7 +738,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* LARGE CLOSE-UP CARD PREVIEW INSIDE REPORT */}
                 <div className="grid grid-cols-2 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
                   {frontImage && (
                     <div className="flex flex-col items-center">
@@ -783,7 +767,6 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* THE FINANCIAL PREDICTION LINE */}
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div>
                     <span className="text-[11px] text-slate-400 uppercase font-semibold">
@@ -830,16 +813,10 @@ export default function Home() {
                 </div>
 
                 <button
-                  onClick={() => {
-                    if (!user) {
-                      setAuthModalOpen(true);
-                    } else {
-                      setSellModalOpen(true);
-                    }
-                  }}
+                  onClick={() => setSellModalOpen(true)}
                   className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
                 >
-                  <span>💰 List This Card in Marketplace (@{user ? user.username : 'Login to Sell'})</span>
+                  <span>💰 List This Card in Marketplace</span>
                 </button>
               </div>
             )}
@@ -887,7 +864,6 @@ export default function Home() {
 
           {/* SIDEBAR: LIVE COMMUNITY SCANS & VERIFIED HIGH GRADES */}
           <aside className="space-y-6">
-            {/* LIVE COMMUNITY SCANS */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-slate-200">Live Community Scans</h3>
@@ -912,7 +888,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* VERIFIED HIGH GRADES GALLERY (CLOSE-UP VIEWS) */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-slate-200">Verified High Grades</h3>
@@ -950,13 +925,13 @@ export default function Home() {
         </main>
       )}
 
-      {/* VIEW 2: MARKETPLACE STORE (PROMINENT CLOSE-UP DISPLAY) */}
+      {/* VIEW 2: MARKETPLACE STORE (WITH UPDATE & REMOVE CONTROLS ON EVERY CARD) */}
       {activeTab === 'marketplace' && (
         <main className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-white">Verified Collector Marketplace</h2>
-              <p className="text-xs text-slate-400">All cards are AI pre-graded with Escrow buyer protection.</p>
+              <p className="text-xs text-slate-400">Edit, remove, or buy cards directly from the live exchange.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -973,43 +948,47 @@ export default function Home() {
                   <h4 className="text-sm font-bold text-white truncate">{item.title}</h4>
                   <p className="text-xs text-slate-400 mt-0.5">Seller: <span className="text-cyan-400">@{item.seller || 'Verified'}</span></p>
                 </div>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
-                  <div>
+                
+                <div className="mt-4 pt-3 border-t border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-500 block">PRICE</span>
                     <span className="text-base font-extrabold text-emerald-400">{item.estValue}</span>
                   </div>
 
-                  {/* CHECK IF USER OWNS CARD: SHOW UPDATE/REMOVE INSTEAD OF BUY */}
-                  {user && item.seller === user.username ? (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          const currentPrice = item.estValue.replace(/[^0-9.]/g, '');
-                          const newPrice = prompt('Enter new price ($):', currentPrice);
-                          if (newPrice && !isNaN(newPrice)) {
-                            setScannedGallery((prev) => prev.map((c) => c.id === item.id ? { ...c, estValue: '$' + parseFloat(newPrice).toFixed(2) } : c));
-                          }
-                        }}
-                        className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-bold rounded-lg shadow-md transition cursor-pointer"
-                      >
-                        Update
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm('Remove this card from the marketplace?')) {
-                            setScannedGallery((prev) => prev.filter((c) => c.id !== item.id));
-                          }
-                        }}
-                        className="px-3 py-2 bg-red-900/80 hover:bg-red-800 text-white text-xs font-bold rounded-lg shadow-md transition cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <button onClick={() => handleBuyCard(item)} className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md transition cursor-pointer">
-                      Buy (Escrow)
+                  {/* ACTION CONTROLS: UPDATE, REMOVE, AND BUY */}
+                  <div className="flex gap-1.5 w-full">
+                    <button
+                      onClick={() => {
+                        const currentPrice = item.estValue.replace(/[^0-9.]/g, '');
+                        const newPrice = prompt('Enter new price for this card ($):', currentPrice);
+                        if (newPrice && !isNaN(newPrice)) {
+                          setScannedGallery((prev) =>
+                            prev.map((c) => (c.id === item.id ? { ...c, estValue: '$' + parseFloat(newPrice).toFixed(2) } : c))
+                          );
+                        }
+                      }}
+                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-bold py-2 rounded-lg border border-slate-700 transition cursor-pointer text-center"
+                    >
+                      ✏️ Edit Price
                     </button>
-                  )}
+                    <button
+                      onClick={() => {
+                        if (confirm(`Remove "${item.title}" from the marketplace?`)) {
+                          setScannedGallery((prev) => prev.filter((c) => c.id !== item.id));
+                        }
+                      }}
+                      className="flex-1 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/60 text-xs font-bold py-2 rounded-lg transition cursor-pointer text-center"
+                    >
+                      🗑️ Remove
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => handleBuyCard(item)}
+                    className="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md transition cursor-pointer"
+                  >
+                    Buy (Escrow)
+                  </button>
                 </div>
               </div>
             ))}
@@ -1024,7 +1003,7 @@ export default function Home() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
               <div>
                 <h2 className="text-xl font-bold text-white">Seller Control Dashboard</h2>
-                <p className="text-xs text-slate-400">Manage your active card inventory for @{user?.username}.</p>
+                <p className="text-xs text-slate-400">Manage all listed inventory and pricing.</p>
               </div>
               <button onClick={() => setActiveTab('scanner')} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition cursor-pointer">
                 + Scan & List New Card
@@ -1032,7 +1011,7 @@ export default function Home() {
             </div>
             {myListings.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed border-slate-800 rounded-xl">
-                <p className="text-slate-400 text-sm">You haven't listed any cards yet.</p>
+                <p className="text-slate-400 text-sm">No cards currently listed.</p>
                 <button onClick={() => setActiveTab('scanner')} className="mt-3 text-cyan-400 text-xs font-bold underline cursor-pointer">
                   Go to AI Scanner to pre-grade and list your first card →
                 </button>
@@ -1056,7 +1035,9 @@ export default function Home() {
                           const currentPrice = card.estValue.replace(/[^0-9.]/g, '');
                           const newPrice = prompt('Enter new price ($):', currentPrice);
                           if (newPrice && !isNaN(newPrice)) {
-                            setScannedGallery((prev) => prev.map((c) => c.id === card.id ? { ...c, estValue: '$' + parseFloat(newPrice).toFixed(2) } : c));
+                            setScannedGallery((prev) =>
+                              prev.map((c) => (c.id === card.id ? { ...c, estValue: '$' + parseFloat(newPrice).toFixed(2) } : c))
+                            );
                           }
                         }}
                         className="text-cyan-400 hover:text-cyan-300 text-xs font-bold p-1 text-right cursor-pointer"
@@ -1065,7 +1046,7 @@ export default function Home() {
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm('Remove this card from your inventory?')) {
+                          if (confirm(`Remove "${card.title}" from your inventory?`)) {
                             setScannedGallery((prev) => prev.filter((c) => c.id !== card.id));
                           }
                         }}
@@ -1194,7 +1175,7 @@ export default function Home() {
             </button>
             <h3 className="text-lg font-bold text-white mb-1">List Card for Sale</h3>
             <p className="text-xs text-slate-400 mb-4">
-              Your AI sub-grades and close-up photo will be listed under @{user?.username}.
+              Your AI sub-grades and close-up photo will be listed in the marketplace.
             </p>
             <form onSubmit={handlePublishListing} className="space-y-3">
               <div>
