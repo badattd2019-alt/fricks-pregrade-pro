@@ -1,0 +1,9 @@
+{
+  "name": "Fricks Pre-Grade Pro",
+  "short_name": "PreGradePro",
+  "description": "AI Card Scanner and Verified Marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
+}
