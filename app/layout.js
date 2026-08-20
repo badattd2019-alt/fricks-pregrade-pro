@@ -7,6 +7,8 @@ export const metadata = {
   themeColor: '#06b6d4',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
