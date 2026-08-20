@@ -79,17 +79,21 @@ export default function Home() {
   const [report, setReport] = useState(null);
   const [activity, setActivity] = useState(initialActivity);
   const [scannedGallery, setScannedGallery] = useState(highGrades);
+  
   const [scansLeft, setScansLeft] = useState(3);
   const [isPro, setIsPro] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [monthlyCards, setMonthlyCards] = useState(15);
+  
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraTargetSide, setCameraTargetSide] = useState(null);
 
   const [sellModalOpen, setSellModalOpen] = useState(false);
   const [salePrice, setSalePrice] = useState('');
-  const [previewCard, setPreviewCard] = useState(null); // Fullscreen Lightbox Zoom
 
+  const [previewCard, setPreviewCard] = useState(null);
+
+  // Fullscreen Lightbox Zoom
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -167,6 +171,7 @@ export default function Home() {
   const capturePhoto = () => {
     if (!videoRef.current) return;
     const v = videoRef.current;
+    
     const videoW = v.videoWidth || 1280;
     const videoH = v.videoHeight || 720;
 
@@ -189,13 +194,14 @@ export default function Home() {
     canvas.width = 630;
     canvas.height = 880;
     const ctx = canvas.getContext('2d');
-
+    
     if (ctx) {
       ctx.drawImage(v, startX, startY, cropW, cropH, 0, 0, 630, 880);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
       if (cameraTargetSide === 'front') setFrontImage(dataUrl);
       if (cameraTargetSide === 'back') setBackImage(dataUrl);
     }
+    
     closeCamera();
   };
 
@@ -320,24 +326,21 @@ export default function Home() {
 
     setIsScanning(true);
     setReport(null);
+    
     setScanPercent(5);
-
     setScanPhase('1/5: INITIATING OPTICAL LASER ALIGNMENT & BORDER CALIBRATION...');
     const p1 = setTimeout(() => {
       setScanPercent(25);
       setScanPhase('2/5: CALCULATING EXACT 55/45 L/R & T/B CENTERING RATIOS...');
     }, 3000);
-
     const p2 = setTimeout(() => {
       setScanPercent(50);
       setScanPhase('3/5: MICROSCOPIC EDGE & 90° CORNER WEAR DETECTION...');
     }, 6000);
-
     const p3 = setTimeout(() => {
       setScanPercent(75);
       setScanPhase('4/5: CHECKING SURFACE REFLECTIVITY & HOLO PRINT FLAWS...');
     }, 9500);
-
     const p4 = setTimeout(() => {
       setScanPercent(95);
       setScanPhase('5/5: QUERYING REAL-TIME PSA POPULATION & SALES PRICING...');
@@ -382,10 +385,7 @@ export default function Home() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
       applyScanResult(fallbackResult);
     } finally {
-      clearTimeout(p1);
-      clearTimeout(p2);
-      clearTimeout(p3);
-      clearTimeout(p4);
+      clearTimeout(p1); clearTimeout(p2); clearTimeout(p3); clearTimeout(p4);
       setIsScanning(false);
       setScanPhase('');
       setScanPercent(0);
@@ -411,7 +411,6 @@ export default function Home() {
     if (!isPro) {
       setScansLeft((prev) => Math.max(0, prev - 1));
     }
-
     setActivity((prev) => [
       {
         id: Math.random(),
@@ -430,6 +429,7 @@ export default function Home() {
       setAuthModalOpen(true);
       return;
     }
+
     const customCard = {
       id: Date.now(),
       title: report?.title || cardName || 'Verified Pre-Graded Card',
@@ -439,6 +439,7 @@ export default function Home() {
       image: frontImage || backImage || 'https://images.pokemontcg.io/pgo/11_hires.png',
       seller: user.username,
     };
+
     setScannedGallery((prev) => [customCard, ...prev]);
     setSellModalOpen(false);
     setSalePrice('');
@@ -591,7 +592,6 @@ export default function Home() {
                   <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                     FRONT SIDE
                   </span>
-
                   {frontImage ? (
                     <div className="relative w-full h-[320px] flex items-center justify-center rounded-xl overflow-hidden bg-slate-950">
                       <div className="relative z-10 w-full h-full max-h-[300px] aspect-[63/88] rounded-lg border-2 border-cyan-400 overflow-hidden shadow-2xl flex items-center justify-center">
@@ -652,7 +652,6 @@ export default function Home() {
                   <span className="absolute top-3 left-3 z-20 text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
                     BACK SIDE
                   </span>
-
                   {backImage ? (
                     <div className="relative w-full h-[320px] flex items-center justify-center rounded-xl overflow-hidden bg-slate-950">
                       <div className="relative z-10 w-full h-full max-h-[300px] aspect-[63/88] rounded-lg border-2 border-cyan-400 overflow-hidden shadow-2xl flex items-center justify-center">
@@ -760,7 +759,12 @@ export default function Home() {
                     <div className="flex flex-col items-center">
                       <span className="text-[10px] font-bold text-slate-400 mb-1">FRONT CLOSE-UP</span>
                       <div className="w-full h-52 flex items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
-                        <img src={frontImage} alt="Front" className="w-full h-full object-cover cursor-pointer hover:scale-105 transition" onClick={() => setPreviewCard({ image: frontImage, title: report.title + ' (Front)' })} />
+                        <img
+                          src={frontImage}
+                          alt="Front"
+                          className="w-full h-full object-cover cursor-pointer hover:scale-105 transition"
+                          onClick={() => setPreviewCard({ image: frontImage, title: report.title + ' (Front)' })}
+                        />
                       </div>
                     </div>
                   )}
@@ -768,7 +772,12 @@ export default function Home() {
                     <div className="flex flex-col items-center">
                       <span className="text-[10px] font-bold text-slate-400 mb-1">BACK CLOSE-UP</span>
                       <div className="w-full h-52 flex items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
-                        <img src={backImage} alt="Back" className="w-full h-full object-cover cursor-pointer hover:scale-105 transition" onClick={() => setPreviewCard({ image: backImage, title: report.title + ' (Back)' })} />
+                        <img
+                          src={backImage}
+                          alt="Back"
+                          className="w-full h-full object-cover cursor-pointer hover:scale-105 transition"
+                          onClick={() => setPreviewCard({ image: backImage, title: report.title + ' (Back)' })}
+                        />
                       </div>
                     </div>
                   )}
@@ -799,7 +808,6 @@ export default function Home() {
                     <p className="text-sm font-semibold text-white">{report.centering?.measurements}</p>
                     <p className="text-xs font-medium text-cyan-300 mt-0.5">{report.centering?.ratio}</p>
                   </div>
-
                   <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <div className="flex justify-between items-center">
                       <span className="text-[11px] text-slate-400 font-medium">Corners</span>
@@ -807,7 +815,6 @@ export default function Home() {
                     </div>
                     <p className="text-[10px] text-slate-500 mt-1">{report.corners?.note}</p>
                   </div>
-
                   <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <div className="flex justify-between items-center">
                       <span className="text-[11px] text-slate-400 font-medium">Edges</span>
@@ -815,7 +822,6 @@ export default function Home() {
                     </div>
                     <p className="text-[10px] text-slate-500 mt-1">{report.edges?.note}</p>
                   </div>
-
                   <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <span className="text-[11px] text-slate-400 font-medium">Surface</span>
                     <span className="text-xs font-bold text-slate-300">{report.surface?.score}</span>
@@ -928,7 +934,11 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="w-full h-44 flex items-center justify-center overflow-hidden rounded-lg bg-slate-900/90 my-1 p-0.5">
-                      <img src={card.image} alt={card.title} className="w-full h-full object-cover hover:scale-105 transition duration-300 rounded" />
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        className="w-full h-full object-cover hover:scale-105 transition duration-300 rounded"
+                      />
                     </div>
                     <p className="text-[11px] font-semibold text-slate-300 truncate mt-1">{card.title}</p>
                     <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Est. {card.estValue}</p>
@@ -949,7 +959,6 @@ export default function Home() {
               <p className="text-xs text-slate-400">All cards are AI pre-graded with Escrow buyer protection.</p>
             </div>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {scannedGallery.map((item) => (
               <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
@@ -958,27 +967,49 @@ export default function Home() {
                     <span className="text-red-500">{item.company}</span>
                     <span className="bg-cyan-500 text-slate-950 px-2 py-0.5 rounded font-black text-[11px]">{item.grade}</span>
                   </div>
-                  <div
-                    className="w-full h-64 bg-slate-950 rounded-xl flex items-center justify-center p-1 overflow-hidden mb-3 border border-slate-800 cursor-pointer group"
-                    onClick={() => setPreviewCard(item)}
-                  >
+                  <div className="w-full h-64 bg-slate-950 rounded-xl flex items-center justify-center p-1 overflow-hidden mb-3 border border-slate-800 cursor-pointer group" onClick={() => setPreviewCard(item)}>
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-300" />
                   </div>
                   <h4 className="text-sm font-bold text-white truncate">{item.title}</h4>
                   <p className="text-xs text-slate-400 mt-0.5">Seller: <span className="text-cyan-400">@{item.seller || 'Verified'}</span></p>
                 </div>
-
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
                   <div>
                     <span className="text-[10px] text-slate-500 block">PRICE</span>
                     <span className="text-base font-extrabold text-emerald-400">{item.estValue}</span>
                   </div>
-                  <button
-                    onClick={() => handleBuyCard(item)}
-                    className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md transition cursor-pointer"
-                  >
-                    Buy (Escrow)
-                  </button>
+
+                  {/* CHECK IF USER OWNS CARD: SHOW UPDATE/REMOVE INSTEAD OF BUY */}
+                  {user && item.seller === user.username ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          const currentPrice = item.estValue.replace(/[^0-9.]/g, '');
+                          const newPrice = prompt('Enter new price ($):', currentPrice);
+                          if (newPrice && !isNaN(newPrice)) {
+                            setScannedGallery((prev) => prev.map((c) => c.id === item.id ? { ...c, estValue: '$' + parseFloat(newPrice).toFixed(2) } : c));
+                          }
+                        }}
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-bold rounded-lg shadow-md transition cursor-pointer"
+                      >
+                        Update
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Remove this card from the marketplace?')) {
+                            setScannedGallery((prev) => prev.filter((c) => c.id !== item.id));
+                          }
+                        }}
+                        className="px-3 py-2 bg-red-900/80 hover:bg-red-800 text-white text-xs font-bold rounded-lg shadow-md transition cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => handleBuyCard(item)} className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md transition cursor-pointer">
+                      Buy (Escrow)
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -995,21 +1026,14 @@ export default function Home() {
                 <h2 className="text-xl font-bold text-white">Seller Control Dashboard</h2>
                 <p className="text-xs text-slate-400">Manage your active card inventory for @{user?.username}.</p>
               </div>
-              <button
-                onClick={() => setActiveTab('scanner')}
-                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition cursor-pointer"
-              >
+              <button onClick={() => setActiveTab('scanner')} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition cursor-pointer">
                 + Scan & List New Card
               </button>
             </div>
-
             {myListings.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed border-slate-800 rounded-xl">
                 <p className="text-slate-400 text-sm">You haven't listed any cards yet.</p>
-                <button
-                  onClick={() => setActiveTab('scanner')}
-                  className="mt-3 text-cyan-400 text-xs font-bold underline cursor-pointer"
-                >
+                <button onClick={() => setActiveTab('scanner')} className="mt-3 text-cyan-400 text-xs font-bold underline cursor-pointer">
                   Go to AI Scanner to pre-grade and list your first card →
                 </button>
               </div>
@@ -1025,14 +1049,32 @@ export default function Home() {
                         <span className="text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400 px-1.5 py-0.5 rounded">Active in Market</span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setScannedGallery((prev) => prev.filter((c) => c.id !== card.id));
-                      }}
-                      className="text-red-400 hover:text-red-300 text-xs p-2 cursor-pointer"
-                    >
-                      Delete
-                    </button>
+
+                    {/* ADDED UPDATE BUTTON HERE ALONGSIDE DELETE */}
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => {
+                          const currentPrice = card.estValue.replace(/[^0-9.]/g, '');
+                          const newPrice = prompt('Enter new price ($):', currentPrice);
+                          if (newPrice && !isNaN(newPrice)) {
+                            setScannedGallery((prev) => prev.map((c) => c.id === card.id ? { ...c, estValue: '$' + parseFloat(newPrice).toFixed(2) } : c));
+                          }
+                        }}
+                        className="text-cyan-400 hover:text-cyan-300 text-xs font-bold p-1 text-right cursor-pointer"
+                      >
+                        Update Price
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Remove this card from your inventory?')) {
+                            setScannedGallery((prev) => prev.filter((c) => c.id !== card.id));
+                          }
+                        }}
+                        className="text-red-400 hover:text-red-300 text-xs font-bold p-1 text-right cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1069,14 +1111,17 @@ export default function Home() {
               ✕
             </button>
           </div>
+
           <div className="relative w-full max-w-md h-[70vh] bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center">
             <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover z-10" />
+
             <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden">
               <div className="relative w-[85%] max-w-[320px] aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.75)] border-2 border-cyan-400 flex items-center justify-center">
                 <ExactDigitalCenteringTool />
               </div>
             </div>
           </div>
+
           <div className="w-full max-w-md flex justify-center pb-6 z-50">
             <button
               onClick={capturePhoto}
@@ -1092,7 +1137,9 @@ export default function Home() {
       {authModalOpen && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative">
-            <button onClick={() => setAuthModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">✕</button>
+            <button onClick={() => setAuthModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">
+              ✕
+            </button>
             <h3 className="text-lg font-bold text-white mb-1">
               {authMode === 'login' ? 'Sign In to Your Market Account' : 'Create Collector & Seller Account'}
             </h3>
@@ -1143,9 +1190,13 @@ export default function Home() {
       {sellModalOpen && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 max-w-md w-full rounded-2xl p-6 shadow-2xl relative">
-            <button onClick={() => setSellModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">✕</button>
+            <button onClick={() => setSellModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">
+              ✕
+            </button>
             <h3 className="text-lg font-bold text-white mb-1">List Card for Sale</h3>
-            <p className="text-xs text-slate-400 mb-4">Your AI sub-grades and close-up photo will be listed under @{user?.username}.</p>
+            <p className="text-xs text-slate-400 mb-4">
+              Your AI sub-grades and close-up photo will be listed under @{user?.username}.
+            </p>
             <form onSubmit={handlePublishListing} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Asking Price ($ USD)</label>
@@ -1174,8 +1225,12 @@ export default function Home() {
       {showPaywall && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 max-w-md w-full rounded-2xl p-6 shadow-2xl relative text-center space-y-4">
-            <button onClick={() => setShowPaywall(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">✕</button>
-            <div className="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center mx-auto text-2xl">⚡</div>
+            <button onClick={() => setShowPaywall(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer">
+              ✕
+            </button>
+            <div className="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center mx-auto text-2xl">
+              ⚡
+            </div>
             <h3 className="text-xl font-extrabold text-white">Unlock Unlimited Pre-Grading</h3>
             <button
               onClick={redirectToStripe}
