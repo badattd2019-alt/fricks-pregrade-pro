@@ -2,6 +2,7 @@
 import Link from "next/link";
 export const dynamic = "force-dynamic";
 import React, { useState, useEffect, useRef } from 'react';
+import { SignInButton, Show, UserButton } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import PsaScanner from '../components/PsaScanner';
 import Link from "next/link";'use client';
@@ -452,7 +453,16 @@ export default function Home() {
                 className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow transition cursor-pointer"
               >
                 👤 Sign In / Seller Login
-              </button>
+             <Show when="signed-out">
+  <div className="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors">
+    👤 <SignInButton forceRedirectUrl="/" />
+  </div>
+</Show>
+<Show when="signed-in">
+  <div className="bg-slate-800 px-4 py-1.5 rounded-lg flex items-center gap-2">
+    <UserButton afterSignOutUrl="/" />
+  </div>
+</Show>
             )}
 
             {!isPro && (
