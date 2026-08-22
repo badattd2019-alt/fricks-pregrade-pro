@@ -1,15 +1,15 @@
+"use client";
 
-import Link from "next/link";
-export const dynamic = "force-dynamic";
 import React, { useState, useEffect, useRef } from 'react';
-import { SignInButton, Show, UserButton } from '@clerk/nextjs';
+import Link from "next/link";
+import { UserButton } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
-import PsaScanner from '../components/PsaScanner';
-import Link from "next/link";'use client';
 
-// Initialize Supabase Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+export const dynamic = "force-dynamic";
+
+// Initialize Supabase Client safely
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Live $9.99/mo Stripe Payment Link
@@ -44,9 +44,7 @@ export default function Home() {
   const [report, setReport] = useState(null);
   const [activity, setActivity] = useState(initialActivity);
   
-  // Scanned gallery now starts empty and fetches from database
   const [scannedGallery, setScannedGallery] = useState([]);
-  
   const [scansLeft, setScansLeft] = useState(3);
   const [isPro, setIsPro] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -65,13 +63,12 @@ export default function Home() {
   // FETCH CARDS FROM SUPABASE ON LOAD
   useEffect(() => {
     const fetchCards = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('cards')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (data) {
-        // Map database est_value back to estValue for the frontend
         const formattedData = data.map(card => ({
           ...card,
           estValue: card.est_value
@@ -300,6 +297,7 @@ export default function Home() {
     const p3 = setTimeout(() => { setScanPercent(75); setScanPhase('4/5: CHECKING SURFACE REFLECTIVITY & HOLO PRINT FLAWS...'); }, 9500);
     const p4 = setTimeout(() => { setScanPercent(95); setScanPhase('5/5: QUERYING REAL-TIME PSA POPULATION & SALES PRICING...'); }, 12500);
 
+    // MOCK DATA: This is where we will hook up your real AI Vision API next!
     const fallbackResult = {
       title: cardName || '2022 Pokemon Radiant Collectible',
       grade: 'PSA 9.5 GEM MT',
@@ -335,7 +333,6 @@ export default function Home() {
     ]);
   };
 
-  // DATABASE: SAVE NEW CARD
   const handlePublishListing = async (e) => {
     e.preventDefault();
     if (!salePrice) return;
@@ -349,12 +346,11 @@ export default function Home() {
       seller: user?.username || 'VerifiedSeller',
     };
 
-    // Insert into Supabase
     const { data, error } = await supabase.from('cards').insert([dbCard]).select();
 
     if (error) {
-      alert("Database Error: Make sure RLS is disabled in Supabase table settings!");
-      console.error(error);
+      alert(`REAL DATABASE ERROR: ${error.message}`);
+      console.error("SUPABASE ERROR DETAILS:", error);
       return;
     }
 
@@ -367,7 +363,6 @@ export default function Home() {
     }
   };
 
-  // DATABASE: UPDATE CARD PRICE
   const handleUpdatePrice = async (id, currentPrice) => {
     const rawPrice = currentPrice.replace(/[^0-9.]/g, '');
     const newPrice = prompt('Enter new price for this card ($):', rawPrice);
@@ -387,7 +382,6 @@ export default function Home() {
     }
   };
 
-  // DATABASE: REMOVE CARD
   const handleDeleteCard = async (id, title) => {
     if (confirm(`Remove "${title}" permanently?`)) {
       const { error } = await supabase
@@ -416,6 +410,28 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-10 font-sans selection:bg-blue-500 selection:text-white relative">
       <header className="max-w-6xl mx-auto border-b border-slate-800 pb-6 mb-8 space-y-4">
+        
+        {/* NEW WELCOME BANNER SECTION */}
+        <div className="w-full h-40 md:h-64 rounded-2xl overflow-hidden mb-8 relative shadow-[0_0_40px_-15px_rgba(34,211,238,0.3)] border border-slate-800 group">
+          <img 
+            src="/banner.jpg" 
+            alt="Welcome to Fricks" 
+            className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition duration-700"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.parentElement.classList.add('bg-gradient-to-r', 'from-slate-900', 'to-slate-800');
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-6">
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
+              Welcome to the Collector's Hub.
+            </h2>
+            <p className="text-cyan-400 text-sm md:text-base font-semibold mt-2 drop-shadow">
+              Scan, grade, and trade your cards with AI precision.
+            </p>
+          </div>
+        </div>
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -453,17 +469,12 @@ export default function Home() {
                 className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow transition cursor-pointer"
               >
                 👤 Sign In / Seller Login
-             <Show when="signed-out">
-  <div className="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors">
-    👤 <SignInButton forceRedirectUrl="/" />
-  </div>
-</Show>
-<Show when="signed-in">
-  <div className="bg-slate-800 px-4 py-1.5 rounded-lg flex items-center gap-2">
-    <UserButton afterSignOutUrl="/" />
-  </div>
-</Show>
+              </button>
             )}
+
+            <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl flex items-center">
+              <UserButton afterSignOutUrl="/" />
+            </div>
 
             {!isPro && (
               <button
@@ -887,22 +898,25 @@ export default function Home() {
         </div>
       )}
 
+      {/* FULLSCREEN CAMERA SCANNER */}
       {cameraActive && (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between p-4">
-          <div className="w-full max-w-md flex justify-between items-center text-white pt-2 z-50">
-            <span className="text-xs font-bold tracking-wider text-cyan-400 uppercase">Align Card in Scanner Bed</span>
-            <button onClick={closeCamera} className="text-slate-400 hover:text-white text-lg px-2 cursor-pointer">✕</button>
+        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between">
+          <div className="absolute top-0 inset-x-0 p-4 flex justify-between items-center text-white z-50 bg-gradient-to-b from-black/80 to-transparent">
+            <span className="text-xs font-bold tracking-wider text-cyan-400 uppercase drop-shadow-md">Align Card in Scanner Bed</span>
+            <button onClick={closeCamera} className="text-white hover:text-red-400 text-2xl px-2 cursor-pointer drop-shadow-md">✕</button>
           </div>
-          <div className="relative w-full max-w-md h-[70vh] bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center">
+          
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover z-10" />
             <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden">
-              <div className="relative w-[85%] max-w-[320px] aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.75)] border-2 border-cyan-400 flex items-center justify-center">
+              <div className="relative w-[90%] max-w-sm aspect-[63/88] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.85)] border-2 border-cyan-400 flex items-center justify-center">
                 <ExactDigitalCenteringTool />
               </div>
             </div>
           </div>
-          <div className="w-full max-w-md flex justify-center pb-6 z-50">
-            <button onClick={capturePhoto} className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-2xl text-slate-950 font-black cursor-pointer transition active:scale-95">
+          
+          <div className="absolute bottom-0 inset-x-0 p-8 flex justify-center z-50 bg-gradient-to-t from-black/80 to-transparent">
+            <button onClick={capturePhoto} className="w-20 h-20 bg-cyan-400 hover:bg-cyan-300 rounded-full border-4 border-white shadow-[0_0_20px_rgba(34,211,238,0.5)] flex items-center justify-center text-3xl text-slate-950 font-black cursor-pointer transition active:scale-95">
               📸
             </button>
           </div>
